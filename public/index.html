@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rejuvenate — Leadership Simulation</title>
+  <meta name="description" content="Step into the role of Rajan Patel, HR Director at Rejuvenate Inc., and lead a culture change.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- ============ JOIN ============ -->
+  <div id="screen-join" class="join-hero">
+    <svg class="join-logo" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="22" fill="#0d7f5b"/>
+      <path d="M24 36c-7-4.4-11-9.6-11-15a7.4 7.4 0 0 1 12.6-5.2c.5-2.3 2.7-4.6 5.9-4.6-1.5 1.6-1.9 3.3-1.5 5A7.4 7.4 0 0 1 35 21c0 5.4-4 10.6-11 15z" fill="#fcfcfb"/>
+    </svg>
+    <h1>Rejuvenate</h1>
+    <p class="lede">An employee-wellness leadership simulation. You are about to become the HR Director of a company whose products preach health — and whose people are burning out.</p>
+    <div style="height:20px"></div>
+    <form id="join-form" class="card join-card">
+      <div>
+        <label for="join-name">Your name</label>
+        <input id="join-name" type="text" maxlength="40" autocomplete="name" placeholder="e.g. Priya K." required>
+      </div>
+      <div>
+        <label for="join-code">Class code <span class="muted" style="font-weight:500">(from your instructor)</span></label>
+        <input id="join-code" type="text" maxlength="12" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. OPEN" required>
+      </div>
+      <div class="error-note" id="join-error"></div>
+      <button class="btn" type="submit" id="join-btn">Begin the simulation</button>
+    </form>
+    <footer class="credit" id="credit-join"></footer>
+  </div>
+
+  <!-- ============ SIMULATION ============ -->
+  <div id="screen-sim" class="hidden">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <span class="brand">
+          <svg class="leaf" viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="24" r="22" fill="#0d7f5b"/>
+            <path d="M24 36c-7-4.4-11-9.6-11-15a7.4 7.4 0 0 1 12.6-5.2c.5-2.3 2.7-4.6 5.9-4.6-1.5 1.6-1.9 3.3-1.5 5A7.4 7.4 0 0 1 35 21c0 5.4-4 10.6-11 15z" fill="#fcfcfb"/>
+          </svg>
+          Rejuvenate <span class="tag">Simulation</span>
+        </span>
+        <span class="spacer"></span>
+        <span class="chip who-chip" id="who-chip"></span>
+      </div>
+      <div class="metric-strip" id="metric-strip" aria-label="Culture metrics"></div>
+    </div>
+
+    <main class="stage-wrap" id="stage-root" aria-live="polite"></main>
+    <footer class="credit" id="credit-sim"></footer>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script src="/content.js"></script>
+  <script src="/student.js"></script>
+</body>
+</html>

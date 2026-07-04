@@ -1,0 +1,14 @@
+{
+  "name": "rejuvenate-simulation",
+  "version": "1.0.0",
+  "description": "Rejuvenate Inc. employee-wellness leadership simulation — per-student play plus a live instructor facilitation & debrief tab.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rejuvenate — Facilitation</title>
+  <meta name="description" content="Instructor dashboard and class debrief for the Rejuvenate simulation.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- ============ KEY GATE ============ -->
+  <div id="gate" class="gate">
+    <form id="gate-form" class="card">
+      <div class="kicker">Rejuvenate · Facilitation</div>
+      <h1 style="font-size:1.3rem">Instructor access</h1>
+      <div>
+        <label for="gate-key">Facilitator key</label>
+        <input id="gate-key" type="password" autocomplete="current-password" placeholder="Enter the facilitator key">
+      </div>
+      <div class="error-note" id="gate-error"></div>
+      <button class="btn" type="submit">Open dashboard</button>
+      <p class="small">Set via the <code>FACILITATOR_KEY</code> environment variable on the server.</p>
+    </form>
+  </div>
+
+  <!-- ============ DASHBOARD ============ -->
+  <div id="dash" class="dash hidden">
+    <div class="dash-head">
+      <span class="live-dot" id="live-dot" title="Live connection"></span>
+      <h1>Rejuvenate — Facilitation</h1>
+      <select id="session-select" style="width:auto" aria-label="Class session"></select>
+      <div class="dash-controls">
+        <button class="btn btn-ghost btn-sm" id="btn-copy-link">Copy join link</button>
+        <button class="btn btn-ghost btn-sm" id="btn-new-session">New session</button>
+        <button class="btn btn-ghost btn-sm" id="btn-anon">Anonymize: off</button>
+        <button class="btn btn-ghost btn-sm" id="btn-timer">Timer</button>
+        <button class="btn btn-sm" id="btn-debrief">▶ Debrief mode</button>
+      </div>
+    </div>
+
+    <div class="stat-row" id="overview-stats"></div>
+
+    <section class="grid-2">
+      <div class="card chart-card" id="chart-d1"></div>
+      <div class="card chart-card" id="chart-endings"></div>
+    </section>
+
+    <section class="grid-3" id="d2-charts"></section>
+
+    <section class="grid-2">
+      <div class="card chart-card" id="metric-tiles"></div>
+      <div class="card chart-card" id="chart-initiatives"></div>
+    </section>
+
+    <section>
+      <div class="card roster">
+        <div class="chart-head" style="padding:12px 14px 0">
+          <div>
+            <h3 style="font-size:0.98rem">Roster</h3>
+            <div class="sub" id="roster-sub"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm btn-danger-outline" id="btn-clear" title="Remove all students in this session">Reset session data</button>
+        </div>
+        <div id="roster-wrap"></div>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card chart-card" id="voices-rationales"></div>
+      <div class="card chart-card" id="voices-reflections"></div>
+    </section>
+
+    <section class="card chart-card" id="run-of-show"></section>
+
+    <footer class="credit" id="credit"></footer>
+  </div>
+
+  <!-- student drill-down drawer -->
+  <div id="drawer-scrim" class="drawer-scrim hidden"></div>
+  <div id="drawer" class="drawer hidden" role="dialog" aria-modal="true"></div>
+
+  <!-- debrief overlay -->
+  <div id="debrief" class="debrief hidden" role="dialog" aria-modal="true">
+    <div class="debrief-top">
+      <span class="chip" id="debrief-session"></span>
+      <span class="spacer"></span>
+      <span class="chip" id="debrief-timer-chip" style="display:none"></span>
+      <button class="btn btn-ghost btn-sm" id="debrief-theme">◐ Theme</button>
+      <button class="btn btn-ghost btn-sm" id="debrief-exit">Exit (Esc)</button>
+    </div>
+    <div class="debrief-slide" id="debrief-slide"></div>
+    <div class="debrief-nav">
+      <button class="btn btn-ghost btn-sm" id="debrief-prev">← Previous</button>
+      <span id="debrief-pos"></span>
+      <button class="btn btn-ghost btn-sm" id="debrief-next">Next →</button>
+    </div>
+  </div>
+
+  <!-- timer overlay -->
+  <div id="timer-pane" class="debrief hidden" role="dialog" aria-modal="true">
+    <div class="debrief-top">
+      <span class="chip">Class timer</span>
+      <span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" id="timer-close">Close (Esc)</button>
+    </div>
+    <div class="debrief-slide" style="text-align:center; justify-items:center">
+      <div class="debrief-hero" id="timer-display" style="font-variant-numeric: tabular-nums">05:00</div>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap">
+        <button class="btn btn-ghost" data-mins="5">5 min</button>
+        <button class="btn btn-ghost" data-mins="10">10 min</button>
+        <button class="btn btn-ghost" data-mins="15">15 min</button>
+        <button class="btn btn-ghost" data-mins="25">25 min</button>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:center">
+        <button class="btn" id="timer-start">Start</button>
+        <button class="btn btn-ghost" id="timer-reset">Reset</button>
+      </div>
+      <p class="small">The countdown also shows as a chip inside Debrief mode.</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+  <div id="tip" class="tip hidden"></div>
+
+  <script src="/content.js"></script>
+  <script src="/instructor.js"></script>
+</body>
+</html>
