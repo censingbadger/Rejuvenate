@@ -1,0 +1,29 @@
+# Render Blueprint — deploy from https://dashboard.render.com → "New +" → "Blueprint".
+# Render finds this file, prompts you for FACILITATOR_KEY, and deploys.
+services:
+  - type: web
+    name: rejuvenate-simulation
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: FACILITATOR_KEY
+        sync: false # Render asks you for the value on first deploy — pick your instructor passcode
+
+    # NOTE on the free plan: there is no persistent disk, and the instance
+    # spins down after ~15 minutes of no traffic. Responses survive fine
+    # within a class session (constant traffic keeps it awake), but a
+    # spin-down or redeploy clears data/store.json. If you want responses
+    # to persist across days (e.g. students play at home, debrief next
+    # class), change plan to "starter" and uncomment the disk + DATA_DIR:
+    #
+    # disk:
+    #   name: rejuvenate-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    #
+    # ...and add under envVars:
+    #   - key: DATA_DIR
+    #     value: /var/data

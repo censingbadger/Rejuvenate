@@ -63,7 +63,9 @@ Four culture metrics (employee wellbeing, trust in leadership, leadership alignm
 
 ## Deploying for a class
 
-Any Node host works (Render, Railway, Fly.io, a university VM):
+**Render (easiest):** the repo includes a `render.yaml` blueprint. In the [Render dashboard](https://dashboard.render.com) click **New + → Blueprint**, pick this repo, enter a `FACILITATOR_KEY` when prompted, and deploy. Free-tier notes: the instance spins down after ~15 idle minutes (first visitor waits ~30–60 s — open the site a few minutes before class), and without a persistent disk a spin-down clears responses, so run play + debrief in one sitting. To keep responses across days, see the comments in `render.yaml` (starter plan + disk).
+
+Any other Node host also works (Railway, Fly.io, a university VM):
 
 - Set `FACILITATOR_KEY` (and optionally `PORT`).
 - Responses persist to `data/store.json` — give the service a persistent disk (or accept that a redeploy mid-class loses responses; a single class session survives fine in memory either way, since the file is rewritten on every change).
