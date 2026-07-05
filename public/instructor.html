@@ -21,7 +21,7 @@
       </div>
       <div class="error-note" id="gate-error"></div>
       <button class="btn" type="submit">Open dashboard</button>
-      <p class="small">Set via the <code>FACILITATOR_KEY</code> environment variable on the server.</p>
+      <p class="small">This is the <code>FACILITATOR_KEY</code> you set when deploying (on Render: your service → <em>Environment</em> tab — you can view or change it there). Enter it once and this device remembers it; inside, use <em>Bookmark instructor link</em> for a one-click link that skips the key entirely.</p>
     </form>
   </div>
 
@@ -33,6 +33,7 @@
       <select id="session-select" style="width:auto" aria-label="Class session"></select>
       <div class="dash-controls">
         <button class="btn btn-ghost btn-sm" id="btn-copy-link">Copy join link</button>
+        <button class="btn btn-ghost btn-sm" id="btn-bookmark" title="A link that opens this dashboard without typing the key — bookmark it">Bookmark instructor link</button>
         <button class="btn btn-ghost btn-sm" id="btn-new-session">New session</button>
         <button class="btn btn-ghost btn-sm" id="btn-anon">Anonymize: off</button>
         <button class="btn btn-ghost btn-sm" id="btn-timer">Timer</button>
@@ -52,6 +53,8 @@
     </section>
 
     <section class="grid-3" id="d2-charts"></section>
+
+    <section class="grid-2" id="ob-charts"></section>
 
     <section class="grid-2">
       <div class="card chart-card" id="metric-tiles"></div>
