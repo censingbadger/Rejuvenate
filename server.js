@@ -26,6 +26,9 @@ const MAX_BODY = 100 * 1024;
 const NAME_MAX = 40;
 const TEXT_MAX = 1200;
 
+// The always-available session students land in when they don't type a code.
+const DEFAULT_SESSION = (process.env.DEFAULT_SESSION || 'DEMO').toUpperCase();
+
 /* ------------------------------------------------------------------ *
  * Store — in-memory, persisted to a JSON file with atomic writes      *
  * ------------------------------------------------------------------ */
@@ -40,8 +43,9 @@ function loadStore() {
     if (err.code !== 'ENOENT') console.error('Could not read store, starting fresh:', err.message);
     store = { sessions: {}, students: {} };
   }
-  if (Object.keys(store.sessions).length === 0) {
-    store.sessions.OPEN = { code: 'OPEN', name: 'Open session', createdAt: Date.now(), archived: false };
+  // Guarantee the default session exists so a student can always just enter a name.
+  if (!store.sessions[DEFAULT_SESSION]) {
+    store.sessions[DEFAULT_SESSION] = { code: DEFAULT_SESSION, name: 'Demo session', createdAt: Date.now(), archived: false };
   }
 }
 
@@ -186,7 +190,8 @@ async function handleApi(req, res, url) {
 
   if (route === 'POST /api/join') {
     const body = await readBody(req);
-    const code = cleanText(body.code, 12).toUpperCase();
+    // Blank code → the default demo session, so students can join with just a name.
+    const code = cleanText(body.code, 12).toUpperCase() || DEFAULT_SESSION;
     const name = cleanText(body.name, NAME_MAX);
     if (!name) return json(res, 400, { error: 'Please enter your name.' });
     const session = store.sessions[code];
@@ -413,5 +418,5 @@ server.listen(PORT, () => {
   console.log('  Students:    http://localhost:' + PORT + '/');
   console.log('  Instructor:  http://localhost:' + PORT + '/instructor');
   console.log('  Facilitator key: ' + FACILITATOR_KEY + (process.env.FACILITATOR_KEY ? '' : '  (default — set FACILITATOR_KEY to change)'));
-  console.log('  Default class code: OPEN');
+  console.log('  Default class code: ' + DEFAULT_SESSION + '  (students can also just leave the code blank)');
 });
