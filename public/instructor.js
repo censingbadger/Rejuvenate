@@ -223,6 +223,146 @@
   function pct(n, total) { return total ? Math.round(n / total * 100) : 0; }
 
   /* ---------------- dashboard sections ---------------- */
+  /* ---------------- debrief insights (auto-analysis) ---------------- */
+  // Leadership-style buckets from the theory lens: participative = listen/co-create,
+  // directive = decide top-down. Used to test the adaptive-leadership prediction live.
+  var PARTICIPATIVE = { 'forums:team': 1, 'trial:iterate': 1, 'pizza:feedback': 1 };
+  var DIRECTIVE = { 'forums:topdown': 1, 'trial:blanket': 1, 'pizza:more': 1 };
+  function endingRank(id) { return (SIM.ENDINGS[id] && SIM.ENDINGS[id].rank) || 99; }
+
+  function computeInsights() {
+    var list = students();
+    var agg = aggregates();
+    var out = [];
+    var finishers = list.filter(function (s) { return s.decisions.d1 && s.decisions.d2; });
+    var N = finishers.length;
+
+    if (N < 2) {
+      out.push({ icon: '⏳', title: 'Insights sharpen as students finish',
+        text: 'Once a handful reach an ending, this panel surfaces the sharpest contrasts, the most-divided decisions, and where to aim the ROI discussion. ' + N + ' of ' + agg.total + ' ' + (agg.total === 1 ? 'has' : 'have') + ' an ending so far.' });
+      return out;
+    }
+
+    // 1) Sharpest contrast — same opening, opposite endings.
+    var bestContrast = null;
+    SIM.DECISION1.options.forEach(function (o) {
+      var opts = SIM.BRANCHES[o.id].decision.options;
+      var endA = o.id + ':' + opts[0].id, endB = o.id + ':' + opts[1].id;
+      var a = agg.endings[endA] || 0, b = agg.endings[endB] || 0;
+      if (a > 0 && b > 0) {
+        var score = Math.min(a, b) * 10 + Math.abs(endingRank(endA) - endingRank(endB));
+        if (!bestContrast || score > bestContrast.score) {
+          var good = endingRank(endA) < endingRank(endB) ? endA : endB;
+          var bad = good === endA ? endB : endA;
+          bestContrast = { score: score, verb: (o.id === 'forums' ? 'listen' : o.id === 'trial' ? 'pilot' : 'boost morale'), title: o.title, good: good, bad: bad, goodN: agg.endings[good], badN: agg.endings[bad] };
+        }
+      }
+    });
+    if (bestContrast) {
+      var ge = SIM.ENDINGS[bestContrast.good], be = SIM.ENDINGS[bestContrast.bad];
+      out.push({ icon: '🎯', title: 'Sharpest contrast: same opening, opposite endings',
+        text: bestContrast.goodN + ' reached ' + ge.icon + ' ' + ge.title + ' and ' + bestContrast.badN + ' reached ' + be.icon + ' ' + be.title + ' — both after opening with “' + bestContrast.title + '.” Put two of them side by side: the lesson isn’t whether you ' + bestContrast.verb + ', it’s what you do next.' });
+    }
+
+    // 2) Participative vs. directive — reproduce the theory prediction from live data.
+    var partN = 0, dirN = 0, partRank = 0, dirRank = 0;
+    finishers.forEach(function (s) {
+      var key = s.decisions.d1.choice + ':' + s.decisions.d2.choice;
+      if (PARTICIPATIVE[key]) { partN++; partRank += endingRank(key); }
+      else if (DIRECTIVE[key]) { dirN++; dirRank += endingRank(key); }
+    });
+    if (partN && dirN) {
+      var pAvg = partRank / partN, dAvg = dirRank / dirN;
+      out.push({ icon: '⚖️', title: 'Participative vs. directive — the theory in your room',
+        text: partN + ' student' + (partN === 1 ? '' : 's') + ' co-created or listened (participative); ' + dirN + ' decided top-down (directive). Average ending rank: ' + pAvg.toFixed(1) + ' participative vs ' + dAvg.toFixed(1) + ' directive (1 = best). ' + (pAvg < dAvg ? 'Your class just reproduced the adaptive-leadership prediction — participative wins for a complex, novel problem like culture change.' : 'Your class bucked the usual pattern here — worth digging into why.') });
+    }
+
+    // 3) Most-divided decision — highest normalized entropy with enough responses.
+    var divisions = [];
+    var dd = agg.d1, dtot = dd.trial + dd.forums + dd.pizza;
+    if (dtot >= 3) divisions.push({ label: 'the opening move', total: dtot, counts: [
+      { name: 'Pilot hours', n: dd.trial }, { name: 'Open forums', n: dd.forums }, { name: 'Morale perks', n: dd.pizza }] });
+    SIM.DECISION1.options.forEach(function (o) {
+      var opts = SIM.BRANCHES[o.id].decision.options;
+      var a = agg.d2[o.id][opts[0].id] || 0, b = agg.d2[o.id][opts[1].id] || 0;
+      if (a + b >= 3) divisions.push({ label: 'Decision 2 in the “' + o.title + '” branch', total: a + b, counts: [
+        { name: opts[0].title, n: a }, { name: opts[1].title, n: b }] });
+    });
+    divisions.forEach(function (dv) {
+      var h = 0; dv.counts.forEach(function (c) { if (c.n) { var p = c.n / dv.total; h -= p * Math.log(p); } });
+      dv.bal = h / Math.log(dv.counts.length);
+    });
+    divisions.sort(function (a, b) { return b.bal - a.bal; });
+    if (divisions.length && divisions[0].bal > 0.6) {
+      var dv = divisions[0];
+      var split = dv.counts.filter(function (c) { return c.n; }).map(function (c) { return c.n + ' ' + c.name.toLowerCase(); }).join(' vs ');
+      out.push({ icon: '🔀', title: 'Most-divided decision — start the argument here',
+        text: 'The class split most evenly on ' + dv.label + ' (' + split + '). Have the two camps defend their call before you reveal the outcome — the disagreement is the discussion.' });
+    }
+
+    // 4) Changed minds — the redo signal.
+    var changed = 0, redos = 0, abandoned = {};
+    list.forEach(function (s) {
+      var fi = s.firstInstinct || {}, rc = s.redoCounts || {};
+      redos += (rc.d1 || 0) + (rc.d2 || 0);
+      if (fi.d1 && s.decisions.d1 && fi.d1 !== s.decisions.d1.choice) { changed++; abandoned[fi.d1] = (abandoned[fi.d1] || 0) + 1; }
+      if (fi.d2 && s.decisions.d2 && fi.d2 !== s.decisions.d2.choice) changed++;
+    });
+    if (redos > 0) {
+      var topAb = Object.keys(abandoned).sort(function (a, b) { return abandoned[b] - abandoned[a]; })[0];
+      var abName = topAb && SIM.d1Option(topAb) ? SIM.d1Option(topAb).title : null;
+      out.push({ icon: '🔁', title: 'Some students rethought after the feedback',
+        text: redos + ' decision' + (redos === 1 ? ' was' : 's were') + ' redone after seeing the “why.” ' + (abName ? 'The most-abandoned first instinct was “' + abName + '.” ' : '') + 'Ask one of them what changed their mind — the shift in reasoning teaches better than any slide.' });
+    }
+
+    // 5) Metric spread — the ROI hook.
+    var best = null;
+    SIM.METRICS.forEach(function (m) {
+      var vals = finishers.map(function (s) { return s.metrics[m.id]; });
+      var spread = Math.max.apply(null, vals) - Math.min.apply(null, vals);
+      if (!best || spread > best.spread) best = { m: m, spread: spread, mn: Math.min.apply(null, vals), mx: Math.max.apply(null, vals) };
+    });
+    if (best && best.spread >= 15) {
+      out.push({ icon: '📊', title: best.m.label + ' swung the hardest — your ROI hook',
+        text: best.m.label + ' ranged from ' + best.mn + ' to ' + best.mx + ' across the class (a ' + best.spread + '-point spread, the widest of the four). That gap is the ROI conversation: what would make the CEO and finance director treat wellness as an investment, not a cost?' });
+    }
+
+    // 6) Initiative consensus.
+    var scored = Object.keys(agg.initiativeScore).map(function (id) { return { id: id, picks: agg.initiativePicks[id], score: agg.initiativeScore[id] }; })
+      .sort(function (a, b) { return b.score - a.score; });
+    if (scored.length) {
+      var top = scored[0];
+      out.push({ icon: '🏅', title: 'The class’s clearest recommendation',
+        text: '“' + SIM.initiativeById(top.id).label + '” tops the initiative leaderboard (picked by ' + top.picks + ' student' + (top.picks === 1 ? '' : 's') + '). Open the small-group assignment by pressure-testing it — what’s the evidence, and what would it cost to get wrong?' });
+    }
+
+    return out;
+  }
+
+  function insightRow(it, asCard) {
+    return el('div', { class: 'insight' + (asCard ? ' card' : '') }, [
+      el('div', { class: 'insight-icon', text: it.icon, 'aria-hidden': 'true' }),
+      el('div', {}, [
+        el('div', { class: 'insight-title', text: it.title }),
+        el('div', { class: 'insight-text', text: it.text })
+      ])
+    ]);
+  }
+
+  function renderInsights() {
+    var card = clear($('#insights'));
+    card.classList.add('insights-card');
+    card.appendChild(el('div', { class: 'chart-head' }, [
+      el('div', {}, [
+        el('h3', { text: '💡 Debrief insights — where to aim the conversation' }),
+        el('div', { class: 'sub', text: 'auto-generated from the live class data; updates as students play' })
+      ])
+    ]));
+    var listEl = el('div', { class: 'insight-list' });
+    computeInsights().forEach(function (it) { listEl.appendChild(insightRow(it, false)); });
+    card.appendChild(listEl);
+  }
+
   function renderOverview() {
     var agg = aggregates();
     var wrap = clear($('#overview-stats'));
@@ -486,6 +626,7 @@
     if (!snap) return;
     renderSessionSelect();
     renderOverview();
+    renderInsights();
     renderD1();
     renderEndings();
     renderD2();
@@ -550,6 +691,21 @@
         el('div', { text: s.reflection.justification ? '“' + s.reflection.justification + '”' : 'No justification given.' })
       ]));
     }
+    // Rethink / fresh-slate signal — good debrief colour.
+    var fi = s.firstInstinct || {}, rc = s.redoCounts || {};
+    var notes = [];
+    if (fi.d1 && s.decisions.d1 && fi.d1 !== s.decisions.d1.choice && SIM.d1Option(fi.d1)) {
+      notes.push('First instinct on the opening was “' + SIM.d1Option(fi.d1).title + ',” then switched.');
+    }
+    if ((rc.d1 || 0) + (rc.d2 || 0) > 0) notes.push('Rethought a decision ' + ((rc.d1 || 0) + (rc.d2 || 0)) + '× after the feedback.');
+    if (s.restarts) notes.push('Restarted with a fresh slate ' + s.restarts + '×.');
+    if (notes.length) {
+      d.appendChild(el('div', { class: 'card voice', style: 'border-left:3px solid var(--s3)' }, [
+        el('div', { class: 'v-meta', text: '↺ Changed course' }),
+        el('div', { text: notes.join(' ') })
+      ]));
+    }
+
     d.appendChild(el('button', {
       class: 'btn btn-ghost btn-sm btn-danger', text: 'Remove this student',
       onclick: function () {
@@ -666,6 +822,16 @@
           legend: SIM.DECISION1.options.map(function (o) { return { label: 'via ' + o.title, color: slotVar(o.slot) }; })
         }),
         el('div', { class: 'callout', text: 'The pattern to draw out: both “listening” moves only pay off when voice leads to visible action — and the worst two endings both broke that link.' })
+      ];
+    });
+
+    // 6b · auto-generated insights — where to aim the conversation
+    slides.push(function () {
+      var items = computeInsights();
+      return [
+        el('div', { class: 'kicker', text: 'Read from your class, right now' }),
+        el('h2', { text: 'Where to aim the conversation' }),
+        el('div', { class: 'insight-list debrief-insights' }, items.map(function (it) { return insightRow(it, true); }))
       ];
     });
 

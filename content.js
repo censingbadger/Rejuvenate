@@ -294,6 +294,66 @@
   };
 
   /* ------------------------------------------------------------------ *
+   * Decision feedback — the "why this worked / didn't" coaching shown    *
+   * on the outcome screen, so students can learn and optionally rethink. *
+   * Wording is grounded in Jess's teaching-note outcomes (verified       *
+   * against the slide deck): the path labels (Most Positive / Medium /   *
+   * Not so effective) and each Path 1 vs Path 2 outcome list.            *
+   * verdict: strong (green) | mixed (amber) | weak (red).                *
+   * ------------------------------------------------------------------ */
+  var FEEDBACK = {
+    d1: {
+      forums: {
+        verdict: 'strong',
+        title: 'The strongest opening',
+        text: 'In Jess’s notes this is the most positive first move. Listening first surfaces the five real problem buckets — Work Hours, Health Initiatives, Team Dynamics, Office Environment, Work-Life Balance — and builds the trust every later intervention depends on. One catch: you’ve raised expectations in those rooms, so what you do with the feedback next is everything.'
+      },
+      trial: {
+        verdict: 'mixed',
+        title: 'A solid but narrow opening',
+        text: 'This is the “medium” path in Jess’s notes: a credible, evidence-driven start. A one-department trial gives you real data and a defensible story for skeptical leadership. Its limit is scope — it tackles work hours only, so the broader culture issues (silos, the “hustle” badge of honor, well-being) still wait their turn.'
+      },
+      pizza: {
+        verdict: 'weak',
+        title: 'Why perks alone fall short',
+        text: 'Jess flags this as the least effective opening. “Pizza Fridays” lifts the mood for a moment, but it doesn’t touch the 55-hour weeks, the silos, or the burnout. Employees enjoy the perk — yet if it’s the whole plan, distrust grows as their serious concerns feel downplayed. What you do next matters enormously.'
+      }
+    },
+    d2: {
+      'forums:team': {
+        verdict: 'strong',
+        title: 'Why this worked',
+        text: 'Path 1 — and the best outcome in Jess’s notes. A cross-functional team turns feedback into pilots (flexible schedules, offline weekends, a revamped breakroom), rapid feedback loops refine them, and it builds to a formal wellness policy, external consultants, ergonomic furniture, and Mindful Mondays. Employees feel valued and heard; absenteeism drops and engagement soars; “hustle” gives way to “health-first.”'
+      },
+      'forums:topdown': {
+        verdict: 'weak',
+        title: 'Why this fell short',
+        text: 'You gathered five buckets of employee feedback, then decided without them. Generic, top-down initiatives borrowed from other companies miss Rejuvenate’s actual problems, and mandatory seminars breed resentment. In Jess’s framing, employees feel disconnected and skeptical of the intent — soliciting voice and then overruling it costs more trust than never asking.'
+      },
+      'trial:iterate': {
+        verdict: 'strong',
+        title: 'Why this worked',
+        text: 'Path 1 — the iterative approach. Examining both the quantitative data (productivity, delivery times) and the qualitative side, plus follow-up sessions, means challenges get addressed promptly; a phased rollout minimizes disruption; and morale rises as other departments anticipate their turn. Jess’s notes say this can bend toward the most positive outcomes.'
+      },
+      'trial:blanket': {
+        verdict: 'weak',
+        title: 'Why this fell short',
+        text: 'Rolling the change out to everyone at once ignores department-specific needs — sales and marketing hit peak seasons with the same targets and fewer hours. With no mechanism to capture feedback, problems surface as missed deadlines and reputation risk, and the response is mixed. A pilot is evidence, not a mandate.'
+      },
+      'pizza:more': {
+        verdict: 'weak',
+        title: 'Why this fell short',
+        text: 'Doubling down on “Ice Cream Tuesdays” and movie nights without addressing root causes reads as leadership being out of touch. The novelty wears off, the events become distractions, dissatisfaction rises — “I’d trade all the pizzas for a day off” becomes the refrain — and turnover climbs, top talent first.'
+      },
+      'pizza:feedback': {
+        verdict: 'mixed',
+        title: 'A genuine course correction',
+        text: 'Keeping “Pizza Fridays” in proportion and adding “Feedback Fridays” plus ergonomic fixes helps employees feel more valued and heard, and morale ticks up with fewer pain points. But as Jess notes, the deeper systemic issues — hours, workload, silos — are still present and waiting for a real strategy.'
+      }
+    }
+  };
+
+  /* ------------------------------------------------------------------ *
    * Endings — "one year later" epilogues                                *
    * tone: great | good | mixed | poor | bad (icon + word, never color   *
    * alone). rank orders endings best → worst for the debrief.           *
@@ -589,6 +649,14 @@
     return null;
   }
 
+  // Feedback for the decision the student just made.
+  // point 'd1' → keyed by choice; point 'd2' → keyed by "d1choice:d2choice".
+  function feedbackFor(point, d1, d2) {
+    if (point === 'd1') return FEEDBACK.d1[d1] || null;
+    if (point === 'd2') return FEEDBACK.d2[d1 + ':' + d2] || null;
+    return null;
+  }
+
   return {
     META: META,
     METRICS: METRICS,
@@ -596,6 +664,8 @@
     DECISION1: DECISION1,
     BRANCHES: BRANCHES,
     OUTCOME2_REACTIONS: OUTCOME2_REACTIONS,
+    FEEDBACK: FEEDBACK,
+    feedbackFor: feedbackFor,
     ENDINGS: ENDINGS,
     REFLECTION: REFLECTION,
     TEACHING: TEACHING,
