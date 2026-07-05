@@ -294,6 +294,141 @@
   };
 
   /* ------------------------------------------------------------------ *
+   * Decisions 3 & 4 — universal OB-research dilemmas every student faces *
+   * regardless of their strategic path. Each is deliberately non-obvious *
+   * (the tempting, reflexive option is listed FIRST and is not the best  *
+   * one). Three tiers: strong / mixed (a solid middle) / weak. Every     *
+   * option carries its own metric deltas, coaching feedback, and         *
+   * employee reactions. Options are colored by neutral identity slots so *
+   * nothing telegraphs quality before the choice is made.                *
+   * ------------------------------------------------------------------ */
+  var DECISION3 = {
+    id: 'd3',
+    kicker: 'Month 10 — a retention crisis',
+    timeLabel: 'Month 10 — a resignation letter on your desk',
+    outcomeTitle: 'You make the retention call',
+    title: 'How do you stop the bleeding?',
+    intro: 'Elena — your best developer, the one who first told you about the panic attacks — just got an outside offer for 30% more. HR analytics flags five more senior people as flight risks. In the budget meeting, the CFO’s instinct is fast and familiar: “Put money on the table — a company-wide retention bonus. We can’t afford to lose these people.” Everyone turns to you.',
+    rationalePrompt: 'Why this call? (Optional — feeds the class debrief.)',
+    options: [
+      {
+        id: 'bonus', letter: 'A', slot: 1,
+        title: 'Put money on the table',
+        text: 'Back the CFO: a headline retention bonus and a stock refresh for everyone flagged as a flight risk. Match the outside offers where you have to. Show people they’re valued — in the clearest language there is.',
+        tag: 'Pay to retain',
+        verdict: 'weak',
+        deltas: { wellbeing: 1, trust: -4, alignment: 6, productivity: -3 },
+        interlude: 'The bonuses land in accounts by month’s end. For a few weeks the resignation talk goes quiet, and the CFO looks vindicated. Then the mood curdles into something more cynical.',
+        feedback: {
+          title: 'Why this backfires',
+          text: 'This is the reflex — and the research says it misfires. Money is a “hygiene factor” (Herzberg): it can stop dissatisfaction for a moment but it doesn’t create motivation. Worse, large tangible rewards can *crowd out* the intrinsic, mission-driven pull that brings people to a wellness company in the first place (the overjustification effect; self-determination theory). You’ve signaled that suffering is the deal and you’ll pay for it — so people bank the bonus and leave anyway once it vests.'
+        },
+        reactions: [
+          { from: 'Elena', role: 'Software Developer', text: 'A bonus to stay and keep having panic attacks? I didn’t want to be paid more to suffer. I wanted the suffering to stop. I’m still taking the other offer.' },
+          { from: 'Devon', role: 'Finance Director', text: 'The optics were great for exactly three weeks. Now I’ve spent half a year’s wellness budget and my attrition forecast barely moved.' }
+        ]
+      },
+      {
+        id: 'rework', letter: 'B', slot: 2,
+        title: 'Fix why they’re leaving, not just the paycheck',
+        text: 'Treat the resignations as data, not a bidding war. Cut the unsustainable workload that’s driving people out, give teams real autonomy over how they work, and make sure pay is genuinely *fair* — but lead with the work, not a bonus.',
+        tag: 'Address the root cause',
+        verdict: 'strong',
+        deltas: { wellbeing: 10, trust: 12, alignment: 4, productivity: 6 },
+        interlude: 'You sit with the flight-risk list and ask a different question: not “what will keep them?” but “why do they want to go?” The answer isn’t money — it’s the grind. So you change the grind.',
+        feedback: {
+          title: 'Why this works',
+          text: 'The research is on your side. Pay is a hygiene factor — necessary and it must be fair, but it doesn’t motivate. What retains skilled, mission-driven people is intrinsic: autonomy, mastery, and purpose (self-determination theory). By attacking the workload and restoring control over their work — while quietly fixing genuine pay inequities — you address what people are actually leaving over. It’s cheaper than the bonus and it lasts.'
+        },
+        reactions: [
+          { from: 'Elena', role: 'Software Developer', text: 'They didn’t counter my offer with cash — they gave me my evenings back and a say in what I build. I turned the other job down.' },
+          { from: 'Priya', role: 'Engineering Lead', text: 'First time leadership treated resignations as a diagnosis instead of a hostage negotiation. My whole team noticed.' }
+        ]
+      },
+      {
+        id: 'fairpay', letter: 'C', slot: 3,
+        title: 'Fair pay, plus some relief',
+        text: 'Run a pay-equity review and correct the people who are genuinely underpaid, and lighten the worst of the crunch. A targeted fix for the clearest problems, without a company-wide splash.',
+        tag: 'Targeted correction',
+        verdict: 'mixed',
+        deltas: { wellbeing: 5, trust: 5, alignment: 5, productivity: 2 },
+        interlude: 'You quietly right the clearest pay inequities and ease a few of the worst deadlines. It’s not dramatic, and it genuinely helps — though it doesn’t reach everyone.',
+        feedback: {
+          title: 'A solid, partial fix',
+          text: 'Sensible: correcting real pay inequities removes a legitimate dissatisfier (fair pay is table stakes), and easing the crunch helps. But you stopped at the edges — you didn’t redesign the work itself, so the intrinsic drivers (autonomy, mastery, purpose) are only partly restored. You’ll keep more people than the bonus ever would, but not all of the ones you most wanted to.'
+        },
+        reactions: [
+          { from: 'Elena', role: 'Software Developer', text: 'The pay correction was fair and overdue. It helped. I’m staying — for now — but the hours are still the hours.' },
+          { from: 'Mira', role: 'Sales', text: 'Nice that they fixed the underpaid folks. Some of us are still drowning, though — money was never really the thing.' }
+        ]
+      }
+    ]
+  };
+
+  var DECISION4 = {
+    id: 'd4',
+    kicker: 'Month 11 — quarterly planning',
+    timeLabel: 'Month 11 — setting next quarter’s targets',
+    outcomeTitle: 'You reset the bar',
+    title: 'What do you do about the “bar”?',
+    intro: 'Quarterly planning. The punishing stretch goals — the famous “bar is set so high” — are exactly what’s burning people out. But leadership also credits them for the growth, and the VP of Product wants next quarter’s targets from you by Friday. Three schools of thought are on the table.',
+    rationalePrompt: 'Why this call? (Optional — feeds the class debrief.)',
+    options: [
+      {
+        id: 'nogoals', letter: 'A', slot: 1,
+        title: 'Take the pressure off — no targets',
+        text: 'The goals are the problem, so remove them. Scrap the quarterly targets, tell people to pace themselves and protect their health, and trust professionals to do good work without a number hanging over them.',
+        tag: 'Ease the pressure',
+        verdict: 'weak',
+        deltas: { wellbeing: -2, trust: -3, alignment: -8, productivity: -12 },
+        interlude: 'You announce it in the all-hands: no quarterly targets this cycle — “do your best and take care of yourselves.” There’s a round of applause. Then, slowly, a strange fog rolls in.',
+        feedback: {
+          title: 'The compassionate-looking trap',
+          text: 'It *feels* like the pro-wellness call — which is exactly why it’s the trap. Decades of goal-setting research (Locke & Latham) find that “do your best” reliably *underperforms* specific, challenging goals. And the ambiguity backfires on wellbeing itself: with no clear expectations, people can’t tell when they’ve done enough, so many work *more* and worry *more*, not less. You didn’t remove the pressure — you removed the finish line, and left everyone running in the dark.'
+        },
+        reactions: [
+          { from: 'Jake', role: 'Product Manager', text: 'No targets sounded like heaven. In practice I have no idea if I’m doing enough, so I just… never stop. It’s somehow more stressful.' },
+          { from: 'Carla Martinez', role: 'CEO', text: 'Rajan, we have no roadmap commitments this quarter and the board meets in six weeks. I asked you to make the goals humane, not to delete them.' }
+        ]
+      },
+      {
+        id: 'cocreate', letter: 'B', slot: 2,
+        title: 'Set the goals with the teams — and change what you measure',
+        text: 'Keep goals, but reset them *with* the people who hit them: participative targets, a mix of output and learning goals, a cap on sustainable workload, and wellbeing metrics sitting in the same scorecard as delivery.',
+        tag: 'Challenging and humane',
+        verdict: 'strong',
+        deltas: { wellbeing: 12, trust: 12, alignment: 6, productivity: 10 },
+        interlude: 'You run planning as a negotiation instead of a decree. Teams set targets they believe in, name what they need to learn, and — for the first time — see “recovery” and “sustainable pace” on the same dashboard as ship dates.',
+        feedback: {
+          title: 'Why this works',
+          text: 'You threaded the needle the research draws. Goal-setting theory (Locke & Latham) says specific, challenging goals genuinely drive performance — so you keep them. But the documented “dark side” (Ordóñez et al., *Goals Gone Wild*) shows narrow, high-pressure goals cause tunnel vision, corner-cutting, and burnout — so you add learning goals, participation (which raises commitment and ownership), and wellbeing guardrails. Challenging *and* humane, which most undergraduates are taught to see as a contradiction.'
+        },
+        reactions: [
+          { from: 'Liam', role: 'Senior Designer', text: 'We set the target ourselves, so we own it — and there’s a learning goal in there, not just a ship date. I’ve never worked harder or felt saner.' },
+          { from: 'Carla Martinez', role: 'CEO', text: 'We still have ambitious commitments for the board — and the team actually believes in them. I didn’t know you could have both.' }
+        ]
+      },
+      {
+        id: 'moderate', letter: 'C', slot: 3,
+        title: 'Dial the targets back from the top',
+        text: 'Keep leadership in charge of the numbers, but set them at a saner level: clearer, more specific, less punishing SMART goals, and ease the worst of the crunch.',
+        tag: 'Sustainable, top-down',
+        verdict: 'mixed',
+        deltas: { wellbeing: 6, trust: 4, alignment: 6, productivity: 6 },
+        interlude: 'You bring more reasonable targets down from leadership — specific, sustainable, clearly stated — and pull back the harshest deadlines. It’s a real improvement, and people feel it.',
+        feedback: {
+          title: 'A real improvement — with a ceiling',
+          text: 'Genuinely better: specific, sustainable goals beat both punishing stretch targets and vague ones, and easing the crunch helps morale immediately. But setting them top-down leaves commitment on the table — participation is what turns a goal from imposed to owned. And with only output metrics and no learning goals, you’re still measuring people on delivery alone. Good, not transformative.'
+        },
+        reactions: [
+          { from: 'Elena', role: 'Software Developer', text: 'Saner numbers, clearly stated — I’ll take it. Would’ve meant more if they’d asked us, but I’m not complaining.' },
+          { from: 'Jake', role: 'Product Manager', text: 'At least I know what the target is now, and it’s reachable. Still feels handed-down, but it’s a lot better than the old bar.' }
+        ]
+      }
+    ]
+  };
+
+  /* ------------------------------------------------------------------ *
    * Decision feedback — the "why this worked / didn't" coaching shown    *
    * on the outcome screen, so students can learn and optionally rethink. *
    * Wording is grounded in Jess's teaching-note outcomes (verified       *
@@ -506,6 +641,29 @@
       'pizza:more': 'Doubling down on perks: novelty wears off, events read as distractions, leadership seems out of touch. “I’d trade all the pizzas for a day off.” Turnover rises, especially top talent; negative industry word-of-mouth.',
       'pizza:feedback': 'Partial recovery: perks kept in proportion, Feedback Fridays + ergonomic fixes make people feel heard. Slight uptick in morale; deeper systemic issues still present.'
     },
+    // OB-research dilemmas. The "trap" is the option students most often pick.
+    d3Notes: {
+      concept: 'Motivation: intrinsic vs. extrinsic',
+      research: 'Herzberg’s two-factor theory (pay is a hygiene factor, not a motivator); Self-Determination Theory (Deci & Ryan — autonomy, competence, relatedness); the overjustification effect (large extrinsic rewards can crowd out intrinsic motivation).',
+      trap: 'bonus',
+      trapNote: 'The retention bonus is the reflexive, “obvious” move and the one to watch for. It feels decisive and even generous, but it treats a hygiene factor as if it were a motivator, is expensive, buys only a quarter of quiet, and signals “we’ll pay you to suffer.” Great moment to ask: why doesn’t more money fix this?',
+      options: {
+        bonus: 'Weak — pay as the headline fix. Hygiene factor; temporary; can crowd out intrinsic, mission-driven motivation. People bank it and leave.',
+        rework: 'Strong — attack the workload and restore autonomy/mastery/purpose; fix pay fairness quietly. Cheaper and durable; addresses why people actually leave.',
+        fairpay: 'Middle — correct genuine pay inequities + ease the crunch. Removes a real dissatisfier but leaves the work itself unredesigned; keeps some, not all.'
+      }
+    },
+    d4Notes: {
+      concept: 'Goal-setting theory and its dark side',
+      research: 'Locke & Latham’s goal-setting theory (specific, challenging goals beat “do your best”); participative goal-setting raises commitment; learning vs. performance goals; the “dark side” (Ordóñez, Schweitzer, Galinsky & Bazerman — Goals Gone Wild: narrow high-pressure goals cause tunnel vision, unethical shortcuts, and burnout).',
+      trap: 'nogoals',
+      trapNote: 'Abolishing goals is the counterintuitive trap — it looks like the compassionate, pro-wellness choice, so many undergraduates pick it. But “do your best” underperforms specific goals, and ambiguity raises anxiety (people can’t tell when they’ve done enough). Key teaching point: the humane answer isn’t no goals, it’s better goals, set with people.',
+      options: {
+        nogoals: 'Weak — scrap targets, “do your best.” Underperforms specific goals; ambiguity increases stress; leadership loses roadmap. The pro-wellness-looking backfire.',
+        cocreate: 'Strong — participative goals + learning goals + wellbeing guardrails. Keeps goal-setting’s power, defuses its dark side. Challenging and humane.',
+        moderate: 'Middle — moderate, clearer top-down SMART goals + less crunch. Real improvement, but leaves commitment (participation) and learning goals on the table.'
+      }
+    },
     discussionQuestions: [
       {
         topic: 'Product vs. culture dissonance',
@@ -571,7 +729,7 @@
     runOfShow: [
       { phase: 'Join & setup', minutes: 5, detail: 'Project the join link and class code. Students enter names; watch the roster fill on the dashboard.' },
       { phase: 'Individual play — briefing & Decision 1', minutes: 10, detail: 'Students read the case chapters and lock in their first move. Use the timer; the funnel shows who is still reading.' },
-      { phase: 'Individual play — outcome & Decision 2', minutes: 10, detail: 'Reactions land, second decision locks, endings reveal. Nudge stragglers via the progress column.' },
+      { phase: 'Individual play — Decisions 2–4', minutes: 14, detail: 'Follow-through, then the two OB dilemmas (retention crisis, the performance bar), each with feedback. Endings and the leadership report card reveal. Nudge stragglers via the progress column.' },
       { phase: 'Reflection memo', minutes: 5, detail: 'Students rank their top-3 initiatives and justify them to the CEO/finance director — feeds the leaderboard.' },
       { phase: 'Debrief', minutes: 25, detail: 'Switch to Debrief mode and walk the slides: participation → Decision 1 → branches → endings → metrics → initiative leaderboard → theory lens → discussion questions.' }
     ],
@@ -587,25 +745,24 @@
   /* ------------------------------------------------------------------ *
    * Progression & scoring                                               *
    * ------------------------------------------------------------------ */
-  var STEPS = ['briefing', 'decision1', 'outcome1', 'decision2', 'outcome2', 'ending', 'reflection', 'done'];
+  var STEPS = ['briefing', 'decision1', 'outcome1', 'decision2', 'outcome2', 'decision3', 'outcome3', 'decision4', 'outcome4', 'ending', 'reflection', 'done'];
 
   function stepIndex(step) { return STEPS.indexOf(step); }
 
-  function d1Option(id) {
-    for (var i = 0; i < DECISION1.options.length; i++) {
-      if (DECISION1.options[i].id === id) return DECISION1.options[i];
-    }
+  function optById(list, id) {
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
     return null;
   }
 
+  function d1Option(id) { return optById(DECISION1.options, id); }
+
   function d2Option(branchId, id) {
     var branch = BRANCHES[branchId];
-    if (!branch) return null;
-    for (var i = 0; i < branch.decision.options.length; i++) {
-      if (branch.decision.options[i].id === id) return branch.decision.options[i];
-    }
-    return null;
+    return branch ? optById(branch.decision.options, id) : null;
   }
+
+  function d3Option(id) { return optById(DECISION3.options, id); }
+  function d4Option(id) { return optById(DECISION4.options, id); }
 
   function endingFor(d1, d2) {
     return ENDINGS[d1 + ':' + d2] || null;
@@ -633,8 +790,60 @@
     if (opt1) apply(opt1.deltas, 'After decision 1');
     var opt2 = (opt1 && decisions.d2) ? d2Option(opt1.id, decisions.d2.choice) : null;
     if (opt2) apply(opt2.deltas, 'After decision 2');
+    var opt3 = (opt2 && decisions.d3) ? d3Option(decisions.d3.choice) : null;
+    if (opt3) apply(opt3.deltas, 'After decision 3');
+    var opt4 = (opt3 && decisions.d4) ? d4Option(decisions.d4.choice) : null;
+    if (opt4) apply(opt4.deltas, 'After decision 4');
 
     return { values: values, stages: stages };
+  }
+
+  // A four-line "leadership report card": each decision + how it graded.
+  // Verdicts: strong (2) / mixed (1) / weak (0). Used on the ending screen
+  // and by the instructor debrief.
+  var GRADE_BANDS = [
+    { min: 7, label: 'Exemplary', blurb: 'Four calls, four that hold up. This is what evidence-based, humane leadership looks like.' },
+    { min: 5, label: 'Strong, with gaps', blurb: 'Mostly sound judgment, with a call or two that left value — or people — on the table.' },
+    { min: 3, label: 'Uneven', blurb: 'Some real instincts, undercut by choices that looked right but worked against you.' },
+    { min: 0, label: 'Struggling', blurb: 'The reflexive, obvious moves dominated — and the research explains why they misfired.' }
+  ];
+
+  function verdictScore(v) { return v === 'strong' ? 2 : v === 'mixed' ? 1 : 0; }
+
+  function decisionScorecard(decisions) {
+    var items = [];
+    if (decisions.d1) {
+      var o1 = d1Option(decisions.d1.choice), v1 = (FEEDBACK.d1[decisions.d1.choice] || {}).verdict;
+      items.push({ label: 'Opening move', title: o1 ? o1.title : decisions.d1.choice, verdict: v1 });
+    }
+    if (decisions.d1 && decisions.d2) {
+      var o2 = d2Option(decisions.d1.choice, decisions.d2.choice), v2 = (FEEDBACK.d2[decisions.d1.choice + ':' + decisions.d2.choice] || {}).verdict;
+      items.push({ label: 'Follow-through', title: o2 ? o2.title : decisions.d2.choice, verdict: v2 });
+    }
+    if (decisions.d3) {
+      var o3 = d3Option(decisions.d3.choice);
+      items.push({ label: 'Retention crisis', title: o3 ? o3.title : decisions.d3.choice, verdict: o3 ? o3.verdict : null });
+    }
+    if (decisions.d4) {
+      var o4 = d4Option(decisions.d4.choice);
+      items.push({ label: 'The performance bar', title: o4 ? o4.title : decisions.d4.choice, verdict: o4 ? o4.verdict : null });
+    }
+    return items;
+  }
+
+  function leadershipGrade(decisions) {
+    var items = decisionScorecard(decisions);
+    var score = 0, max = items.length * 2;
+    items.forEach(function (it) { score += verdictScore(it.verdict); });
+    var band = GRADE_BANDS[GRADE_BANDS.length - 1];
+    for (var i = 0; i < GRADE_BANDS.length; i++) { if (score >= GRADE_BANDS[i].min) { band = GRADE_BANDS[i]; break; } }
+    return { score: score, max: max, label: band.label, blurb: band.blurb, items: items };
+  }
+
+  // Universal-decision feedback lives on the option itself.
+  function optionFeedback(opt) {
+    if (!opt || !opt.feedback) return null;
+    return { verdict: opt.verdict, title: opt.feedback.title, text: opt.feedback.text };
   }
 
   function assign(target, src) {
@@ -664,8 +873,11 @@
     DECISION1: DECISION1,
     BRANCHES: BRANCHES,
     OUTCOME2_REACTIONS: OUTCOME2_REACTIONS,
+    DECISION3: DECISION3,
+    DECISION4: DECISION4,
     FEEDBACK: FEEDBACK,
     feedbackFor: feedbackFor,
+    optionFeedback: optionFeedback,
     ENDINGS: ENDINGS,
     REFLECTION: REFLECTION,
     TEACHING: TEACHING,
@@ -673,8 +885,12 @@
     stepIndex: stepIndex,
     d1Option: d1Option,
     d2Option: d2Option,
+    d3Option: d3Option,
+    d4Option: d4Option,
     endingFor: endingFor,
     computeMetrics: computeMetrics,
+    decisionScorecard: decisionScorecard,
+    leadershipGrade: leadershipGrade,
     initiativeById: initiativeById
   };
 });

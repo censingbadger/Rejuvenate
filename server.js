@@ -207,7 +207,7 @@ async function handleApi(req, res, url) {
       decisions: {},
       reflection: null,
       firstInstinct: {},        // first choice at each point, preserved across redos
-      redoCounts: { d1: 0, d2: 0 },
+      redoCounts: { d1: 0, d2: 0, d3: 0, d4: 0 },
       restarts: 0,              // full "fresh slate" restarts
       createdAt: Date.now(),
       lastSeenAt: Date.now(),
@@ -235,9 +235,9 @@ async function handleApi(req, res, url) {
     // Steps only ever move forward; decisions are recorded via /api/decision.
     if (SIM.stepIndex(step) < 0) return json(res, 400, { error: 'Unknown step.' });
     if (SIM.stepIndex(step) > SIM.stepIndex(s.step)) {
-      const needsD1 = SIM.stepIndex(step) > SIM.stepIndex('decision1');
-      const needsD2 = SIM.stepIndex(step) > SIM.stepIndex('decision2');
-      if ((needsD1 && !s.decisions.d1) || (needsD2 && !s.decisions.d2)) {
+      const past = (point) => SIM.stepIndex(step) > SIM.stepIndex(point);
+      if ((past('decision1') && !s.decisions.d1) || (past('decision2') && !s.decisions.d2) ||
+          (past('decision3') && !s.decisions.d3) || (past('decision4') && !s.decisions.d4)) {
         return json(res, 409, { error: 'Make your decision first.' });
       }
       if (step === 'done') return json(res, 409, { error: 'Submit your reflection to finish.' });
@@ -270,6 +270,20 @@ async function handleApi(req, res, url) {
       if (!s.firstInstinct.d2) s.firstInstinct.d2 = choice;
       s.decisions.d2 = { choice, rationale, at: Date.now() };
       s.step = 'outcome2';
+    } else if (point === 'd3') {
+      if (!s.decisions.d2) return json(res, 409, { error: 'Decision 2 comes first.' });
+      if (s.decisions.d3) return json(res, 409, { error: 'Decision 3 is already locked in.' });
+      if (!SIM.d3Option(choice)) return json(res, 400, { error: 'Unknown option.' });
+      if (!s.firstInstinct.d3) s.firstInstinct.d3 = choice;
+      s.decisions.d3 = { choice, rationale, at: Date.now() };
+      s.step = 'outcome3';
+    } else if (point === 'd4') {
+      if (!s.decisions.d3) return json(res, 409, { error: 'Decision 3 comes first.' });
+      if (s.decisions.d4) return json(res, 409, { error: 'Decision 4 is already locked in.' });
+      if (!SIM.d4Option(choice)) return json(res, 400, { error: 'Unknown option.' });
+      if (!s.firstInstinct.d4) s.firstInstinct.d4 = choice;
+      s.decisions.d4 = { choice, rationale, at: Date.now() };
+      s.step = 'outcome4';
     } else {
       return json(res, 400, { error: 'Unknown decision point.' });
     }
@@ -285,26 +299,24 @@ async function handleApi(req, res, url) {
     const s = getStudent(body);
     if (!s) return json(res, 401, { error: 'Unknown student.' });
     if (!s.firstInstinct) s.firstInstinct = {};
-    if (!s.redoCounts) s.redoCounts = { d1: 0, d2: 0 };
+    if (!s.redoCounts) s.redoCounts = { d1: 0, d2: 0, d3: 0, d4: 0 };
     const point = String(body.point || '');
 
-    if (point === 'd1') {
-      if (s.step !== 'outcome1') return json(res, 409, { error: 'You can only rethink this decision right after making it.' });
-      s.redoCounts.d1 = (s.redoCounts.d1 || 0) + 1;
-      // Redoing the opening also discards the (not-yet-made) second decision + its tracking.
-      delete s.decisions.d1;
-      delete s.decisions.d2;
-      s.firstInstinct.d2 = null;
-      s.redoCounts.d2 = 0;
-      s.step = 'decision1';
-    } else if (point === 'd2') {
-      if (s.step !== 'outcome2') return json(res, 409, { error: 'You can only rethink this decision right after making it.' });
-      s.redoCounts.d2 = (s.redoCounts.d2 || 0) + 1;
-      delete s.decisions.d2;
-      s.step = 'decision2';
-    } else {
-      return json(res, 400, { error: 'Unknown decision point.' });
+    const POINTS = ['d1', 'd2', 'd3', 'd4'];
+    const idx = POINTS.indexOf(point);
+    if (idx < 0) return json(res, 400, { error: 'Unknown decision point.' });
+    // Only "in the moment" — while on this decision's outcome screen.
+    if (s.step !== 'outcome' + (idx + 1)) return json(res, 409, { error: 'You can only rethink this decision right after making it.' });
+
+    s.redoCounts[point] = (s.redoCounts[point] || 0) + 1;
+    // Discard this decision and everything downstream; keep this point's first instinct,
+    // reset the tracking on the downstream decisions that no longer apply.
+    for (let i = idx; i < POINTS.length; i++) {
+      const p = POINTS[i];
+      delete s.decisions[p];
+      if (i > idx) { s.firstInstinct[p] = null; s.redoCounts[p] = 0; }
     }
+    s.step = 'decision' + (idx + 1);
     s.lastSeenAt = Date.now();
     changed();
     return json(res, 200, { student: studentView(s) });
@@ -318,7 +330,7 @@ async function handleApi(req, res, url) {
     s.decisions = {};
     s.reflection = null;
     s.firstInstinct = {};
-    s.redoCounts = { d1: 0, d2: 0 };
+    s.redoCounts = { d1: 0, d2: 0, d3: 0, d4: 0 };
     s.restarts = (s.restarts || 0) + 1;
     s.completedAt = null;
     s.step = 'briefing';

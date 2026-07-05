@@ -17,7 +17,7 @@ node server.js
 ```
 
 - **Students:** `http://localhost:3000/` — just enter a name (the code box is pre-filled with **`DEMO`**, an always-available session, so no code is needed to try it)
-- **Instructor:** `http://localhost:3000/instructor` — facilitator key defaults to **`rejuvenate`**
+- **Instructor:** `http://localhost:3000/instructor` — facilitator key defaults to **`rejuvenate`** (set `FACILITATOR_KEY` to change it; on Render, edit it in your service's **Environment** tab). Enter it once and the device remembers it, or use **Bookmark instructor link** inside the dashboard for a one-click link (`/instructor?key=…`) that skips the prompt entirely.
 
 ```bash
 # production-ish
@@ -59,7 +59,14 @@ data/store.json        # created at runtime; all responses persist here
 | C · Boost morale (pizza) | Add Feedback Fridays | 🔄 The Course Correction |
 | C · Boost morale (pizza) | Double down on perks | 🍕 The Pizza Paradox *(worst)* |
 
-Four culture metrics (employee wellbeing, trust in leadership, leadership alignment, sustainable output) start at case-anchored values and move with each decision; the server recomputes them authoritatively from `content.js`.
+After the strategic arc, every student faces the same two **OB-research dilemmas** (Decisions 3 & 4), each with a strong / middle / unproductive option and a deliberately non-obvious "trap":
+
+| Decision | OB concept | The counterintuitive trap |
+|---|---|---|
+| Retention crisis | Motivation — intrinsic vs. extrinsic (Herzberg; self-determination theory; overjustification) | A company-wide retention **bonus** — money is a hygiene factor and can crowd out intrinsic motivation |
+| The performance bar | Goal-setting theory & its dark side (Locke & Latham; *Goals Gone Wild*) | **Abolishing goals** ("just do your best") — looks pro-wellness but underperforms and raises anxiety |
+
+The run ends with a **leadership report card** grading all four calls. Four culture metrics (employee wellbeing, trust in leadership, leadership alignment, sustainable output) start at case-anchored values and move with each decision; the server recomputes them authoritatively from `content.js`.
 
 ## Deploying for a class
 

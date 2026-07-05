@@ -363,7 +363,7 @@
       el('p', { class: 'case-p', text: 'You lock in the call: ' + opt.title.toLowerCase() + '. Word travels fast. Over the following weeks, the consequences take shape.' }
       )].concat(reactions.map(function (v, i) { return msgBubble(v, 400 + i * 700); })));
 
-    var nav = outcomeNav('d2', 'See where this leads →', function () { goStep('ending'); },
+    var nav = outcomeNav('d2', 'Keep leading →', function () { goStep('decision3'); },
       400 + reactions.length * 700);
 
     root.appendChild(frag([
@@ -375,8 +375,54 @@
     ]));
   }
 
+  // Universal OB dilemmas (decisions 3 & 4): reactions + feedback live on the
+  // chosen option itself, so one renderer covers both.
+  function renderUniversalOutcome(decision, point, nextStep) {
+    var root = stageRoot();
+    var opt = point === 'd3' ? SIM.d3Option(state.decisions.d3.choice) : SIM.d4Option(state.decisions.d4.choice);
+    var reactions = opt.reactions || [];
+    var feed = el('div', { class: 'feed' });
+    if (opt.interlude) feed.appendChild(el('p', { class: 'case-p', text: opt.interlude }));
+    reactions.forEach(function (v, i) { feed.appendChild(msgBubble(v, 400 + i * 700)); });
+
+    var label = nextStep === 'ending' ? 'See where this leads →' : 'Keep leading →';
+    var nav = outcomeNav(point, label, function () { goStep(nextStep); }, 400 + reactions.length * 700);
+
+    root.appendChild(frag([
+      timeDivider(decision.timeLabel),
+      stageHead('What happened next', decision.outcomeTitle),
+      decisionImpactPanel(),
+      feedbackCallout(SIM.optionFeedback(opt)),
+      feed, nav
+    ]));
+  }
+
   /* ---------------- ending ---------------- */
   var TONE_WORD = { great: 'Transformative', good: 'Strong', mixed: 'Partial win', poor: 'Setback', bad: 'Crisis' };
+
+  // A compact grade of all four decisions, shown on the ending screen.
+  function reportCard() {
+    var g = SIM.leadershipGrade(state.decisions);
+    var rows = g.items.map(function (it) {
+      var meta = VERDICT_META[it.verdict] || VERDICT_META.mixed;
+      return el('div', { class: 'rc-row ' + meta.cls }, [
+        el('span', { class: 'rc-badge', text: meta.icon, 'aria-hidden': 'true' }),
+        el('div', { class: 'rc-main' }, [
+          el('div', { class: 'rc-label', text: it.label }),
+          el('div', { class: 'rc-choice', text: it.title })
+        ]),
+        el('span', { class: 'rc-verdict', text: meta.label })
+      ]);
+    });
+    return el('div', { class: 'card report-card' }, [
+      el('div', { class: 'rc-head' }, [
+        el('div', { class: 'rc-grade', text: g.label }),
+        el('div', { class: 'rc-score', text: g.score + ' / ' + g.max })
+      ]),
+      el('div', { class: 'rc-rows' }, rows),
+      el('p', { class: 'rc-blurb small', text: g.blurb })
+    ]);
+  }
 
   function renderEnding() {
     var root = stageRoot();
@@ -415,6 +461,8 @@
         el('div', { class: 'prose' }, e.summary.map(function (p) { return el('p', { class: 'case-p', text: p }); })),
         el('ul', { class: 'ending-bullets' }, e.bullets.map(function (b) { return el('li', { text: b }); })),
         el('div', { class: 'callout' }, [el('strong', { text: 'The takeaway: ' }), el('span', { text: e.lesson })]),
+        el('div', { class: 'kicker', text: 'Your four leadership calls' }),
+        reportCard(),
         el('div', { class: 'kicker', text: 'Where the culture landed' }),
         finals
       ]),
@@ -536,6 +584,10 @@
         return renderDecision(SIM.BRANCHES[d1].decision, 'd2', SIM.d1Option(d1).slot);
       }
       case 'outcome2': return renderOutcome2();
+      case 'decision3': return renderDecision(SIM.DECISION3, 'd3', null);
+      case 'outcome3': return renderUniversalOutcome(SIM.DECISION3, 'd3', 'decision4');
+      case 'decision4': return renderDecision(SIM.DECISION4, 'd4', null);
+      case 'outcome4': return renderUniversalOutcome(SIM.DECISION4, 'd4', 'ending');
       case 'ending': return renderEnding();
       case 'reflection': return renderReflection();
       case 'done': return renderDone();

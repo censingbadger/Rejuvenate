@@ -373,6 +373,23 @@ table.twin td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .outcome-nav { flex-wrap: wrap; gap: 10px; }
 .done-actions { display: grid; gap: 8px; justify-items: center; margin-top: 8px; }
 
+/* leadership report card (ending) */
+.report-card { padding: 16px 18px; }
+.rc-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.rc-grade { font-size: 1.15rem; font-weight: 750; letter-spacing: -0.01em; }
+.rc-score { font-size: 1.35rem; font-weight: 750; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.rc-rows { display: grid; gap: 8px; }
+.rc-row { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; padding: 8px 11px; border-radius: 9px; border: 1px solid var(--border); border-left: 3px solid var(--fb-color); background: color-mix(in srgb, var(--fb-color) 6%, var(--surface)); }
+.rc-row.v-strong { --fb-color: var(--good); --fb-ink: var(--delta-up); }
+.rc-row.v-mixed  { --fb-color: var(--warning); --fb-ink: var(--amber-ink); }
+.rc-row.v-weak   { --fb-color: var(--critical); --fb-ink: var(--delta-down); }
+.rc-badge { font-size: 1.05rem; font-weight: 800; color: var(--fb-ink); text-align: center; }
+.rc-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.rc-choice { font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+.rc-verdict { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fb-ink); white-space: nowrap; }
+.rc-blurb { margin-top: 10px; }
+@media (max-width: 520px) { .rc-verdict { display: none; } }
+
 /* ending */
 .ending-banner { padding: 26px 26px 22px; position: relative; overflow: hidden; }
 .ending-banner .icon { font-size: 2rem; }
@@ -424,6 +441,10 @@ footer.credit { max-width: 780px; margin: 30px auto 0; padding: 0 18px; font-siz
 .debrief-insights { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .debrief-insights .insight-text { font-size: clamp(0.82rem, 1.25vw, 0.98rem); }
 @media (max-width: 860px) { .debrief-insights { grid-template-columns: 1fr; } }
+
+/* note under the OB-dilemma charts (instructor-only trap callout) */
+.ob-note { margin-top: 12px; font-size: 0.82rem; color: var(--ink-2); background: var(--chip-bg); border-radius: 8px; padding: 9px 12px; line-height: 1.5; }
+.ob-note strong { color: var(--ink); }
 .dash-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
 .dash-head h1 { font-size: 1.3rem; letter-spacing: -0.01em; margin-right: 6px; }
 .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--baseline); }

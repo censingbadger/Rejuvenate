@@ -78,19 +78,22 @@
       liveNow: 0, completed: 0, reachedEnding: 0,
       d1: { trial: 0, forums: 0, pizza: 0 },
       d2: { trial: {}, forums: {}, pizza: {} },
+      d3: {}, d4: {},
       endings: {}, durations: [],
       metricSums: {}, metricN: 0,
       initiativeScore: {}, initiativePicks: {},
-      stepBuckets: { reading: 0, decision1: 0, decision2: 0, wrapping: 0, done: 0 }
+      stepBuckets: { reading: 0, deciding: 0, wrapping: 0, done: 0 }
     };
+    SIM.DECISION3.options.forEach(function (o) { agg.d3[o.id] = 0; });
+    SIM.DECISION4.options.forEach(function (o) { agg.d4[o.id] = 0; });
     SIM.METRICS.forEach(function (m) { agg.metricSums[m.id] = 0; });
     var now = snap.now || Date.now();
 
     list.forEach(function (s) {
       if (now - s.lastSeenAt < 90000 && s.step !== 'done') agg.liveNow++;
+      var si = SIM.stepIndex(s.step);
       var b = s.step === 'briefing' ? 'reading'
-        : (s.step === 'decision1' || s.step === 'outcome1') ? 'decision1'
-        : (s.step === 'decision2' || s.step === 'outcome2') ? 'decision2'
+        : si <= SIM.stepIndex('outcome4') ? 'deciding'
         : (s.step === 'ending' || s.step === 'reflection') ? 'wrapping' : 'done';
       agg.stepBuckets[b]++;
 
@@ -103,6 +106,8 @@
         agg.metricN++;
         SIM.METRICS.forEach(function (m) { agg.metricSums[m.id] += s.metrics[m.id]; });
       }
+      if (s.decisions.d3) agg.d3[s.decisions.d3.choice] = (agg.d3[s.decisions.d3.choice] || 0) + 1;
+      if (s.decisions.d4) agg.d4[s.decisions.d4.choice] = (agg.d4[s.decisions.d4.choice] || 0) + 1;
       if (s.completedAt) {
         agg.completed++;
         agg.durations.push(s.completedAt - s.createdAt);
@@ -327,6 +332,18 @@
         text: best.m.label + ' ranged from ' + best.mn + ' to ' + best.mx + ' across the class (a ' + best.spread + '-point spread, the widest of the four). That gap is the ROI conversation: what would make the CEO and finance director treat wellness as an investment, not a cost?' });
     }
 
+    // 5b) Counterintuitive OB traps — the option that looks right but backfires.
+    [{ dec: SIM.DECISION3, tally: agg.d3, notes: SIM.TEACHING.d3Notes },
+     { dec: SIM.DECISION4, tally: agg.d4, notes: SIM.TEACHING.d4Notes }].forEach(function (blk) {
+      var total = blk.dec.options.reduce(function (t, o) { return t + (blk.tally[o.id] || 0); }, 0);
+      var trapN = blk.tally[blk.notes.trap] || 0;
+      if (total >= 3 && trapN / total >= 0.34) {
+        var trapOpt = blk.dec.options.filter(function (o) { return o.id === blk.notes.trap; })[0];
+        out.push({ icon: '🧠', title: 'A counterintuitive trap caught the room',
+          text: pct(trapN, total) + '% chose “' + trapOpt.title + '” on the ' + blk.notes.concept.toLowerCase() + ' question — the option that looks right but backfires. ' + blk.notes.trapNote });
+      }
+    });
+
     // 6) Initiative consensus.
     var scored = Object.keys(agg.initiativeScore).map(function (id) { return { id: id, picks: agg.initiativePicks[id], score: agg.initiativeScore[id] }; })
       .sort(function (a, b) { return b.score - a.score; });
@@ -369,7 +386,7 @@
     var tiles = [
       { label: 'Joined', value: agg.total, sub: agg.liveNow + ' active in the last 90s' },
       { label: 'Reading the case', value: agg.stepBuckets.reading, sub: 'briefing chapters' },
-      { label: 'In decisions', value: agg.stepBuckets.decision1 + agg.stepBuckets.decision2, sub: 'decision 1: ' + agg.stepBuckets.decision1 + ' · decision 2: ' + agg.stepBuckets.decision2 },
+      { label: 'In decisions', value: agg.stepBuckets.deciding, sub: 'working through the four calls' },
       { label: 'Completed', value: agg.completed, sub: agg.total ? pct(agg.completed, agg.total) + '% of joined' : '—' },
       { label: 'Median play time', value: agg.medianDuration ? fmtDur(agg.medianDuration) : '—', sub: 'join → reflection submitted' }
     ];
@@ -379,6 +396,49 @@
         el('div', { class: 'stat-value', text: String(t.value) }),
         el('div', { class: 'stat-sub', text: t.sub })
       ]));
+    });
+  }
+
+  // The two universal OB dilemmas — colored by verdict so the trap is visible
+  // to the instructor (green=strong, amber=middle, red=weak). Students never
+  // see these colors; on their screen the options are neutral.
+  var VERDICT_COLOR = { strong: 'var(--good)', mixed: 'var(--warning)', weak: 'var(--critical)' };
+  function renderOBDecisions() {
+    var agg = aggregates();
+    var wrap = clear($('#ob-charts'));
+    [{ dec: SIM.DECISION3, tally: agg.d3, notes: SIM.TEACHING.d3Notes },
+     { dec: SIM.DECISION4, tally: agg.d4, notes: SIM.TEACHING.d4Notes }].forEach(function (blk) {
+      var total = blk.dec.options.reduce(function (t, o) { return t + (blk.tally[o.id] || 0); }, 0);
+      var card = el('div', { class: 'card chart-card' });
+      wrap.appendChild(card);
+      hbarChart(card, {
+        title: blk.dec.title,
+        sub: blk.notes.concept + ' · ' + total + ' decided',
+        rowHeader: 'Choice',
+        empty: 'No one has reached this decision yet.',
+        rows: blk.dec.options.map(function (o) {
+          var n = blk.tally[o.id] || 0;
+          var tierWord = o.verdict === 'strong' ? 'strong' : o.verdict === 'mixed' ? 'middle' : 'trap';
+          return {
+            label: o.letter + ' · ' + o.title, count: n, pct: pct(n, total),
+            color: VERDICT_COLOR[o.verdict],
+            tip: o.title + ' — the ' + tierWord + ' choice: ' + n + ' student' + (n === 1 ? '' : 's')
+          };
+        }),
+        legend: [
+          { label: 'strong', color: VERDICT_COLOR.strong },
+          { label: 'middle', color: VERDICT_COLOR.mixed },
+          { label: 'trap (weak)', color: VERDICT_COLOR.weak }
+        ]
+      });
+      // count how many fell for the counterintuitive trap
+      var trapN = blk.tally[blk.notes.trap] || 0;
+      if (total > 0) {
+        card.appendChild(el('div', { class: 'ob-note' }, [
+          el('strong', { text: pct(trapN, total) + '% took the counterintuitive trap. ' }),
+          el('span', { text: blk.notes.trapNote })
+        ]));
+      }
     });
   }
 
@@ -498,7 +558,9 @@
 
   var STEP_LABEL = {
     briefing: 'Reading', decision1: 'Decision 1', outcome1: 'Outcome 1',
-    decision2: 'Decision 2', outcome2: 'Outcome 2', ending: 'Ending',
+    decision2: 'Decision 2', outcome2: 'Outcome 2',
+    decision3: 'Decision 3', outcome3: 'Outcome 3',
+    decision4: 'Decision 4', outcome4: 'Outcome 4', ending: 'Ending',
     reflection: 'Reflection', done: 'Done'
   };
 
@@ -630,6 +692,7 @@
     renderD1();
     renderEndings();
     renderD2();
+    renderOBDecisions();
     renderMetricTiles();
     renderInitiatives();
     renderRoster();
@@ -681,8 +744,21 @@
         el('div', { class: 'v-meta', text: 'Decision 2 · ' + d2.letter + ' — ' + d2.title }),
         el('div', { text: s.decisions.d2.rationale ? '“' + s.decisions.d2.rationale + '”' : 'No rationale given.' })
       ]));
+    }
+    // Decisions 3 & 4 (universal OB dilemmas) — verdict-colored left border.
+    [{ n: 3, opt: s.decisions.d3 && SIM.d3Option(s.decisions.d3.choice), rat: s.decisions.d3 && s.decisions.d3.rationale, label: 'Retention crisis' },
+     { n: 4, opt: s.decisions.d4 && SIM.d4Option(s.decisions.d4.choice), rat: s.decisions.d4 && s.decisions.d4.rationale, label: 'The performance bar' }].forEach(function (x) {
+      if (!x.opt) return;
+      d.appendChild(el('div', { class: 'card voice', style: 'border-left:3px solid ' + VERDICT_COLOR[x.opt.verdict] }, [
+        el('div', { class: 'v-meta', text: 'Decision ' + x.n + ' (' + x.label + ') · ' + x.opt.letter + ' — ' + x.opt.title }),
+        el('div', { text: x.rat ? '“' + x.rat + '”' : 'No rationale given.' })
+      ]));
+    });
+    if (d1 && d2) {
       var e = SIM.endingFor(d1.id, d2.id);
+      var g = SIM.leadershipGrade(s.decisions);
       d.appendChild(kv('Ending', e.icon + ' ' + e.title + ' (' + e.tone + ')'));
+      d.appendChild(kv('Leadership grade', g.label + ' (' + g.score + '/' + g.max + ')'));
       d.appendChild(kv('Final metrics', SIM.METRICS.map(function (m) { return m.label + ' ' + s.metrics[m.id]; }).join(' · ')));
     }
     if (s.reflection) {
@@ -697,7 +773,8 @@
     if (fi.d1 && s.decisions.d1 && fi.d1 !== s.decisions.d1.choice && SIM.d1Option(fi.d1)) {
       notes.push('First instinct on the opening was “' + SIM.d1Option(fi.d1).title + ',” then switched.');
     }
-    if ((rc.d1 || 0) + (rc.d2 || 0) > 0) notes.push('Rethought a decision ' + ((rc.d1 || 0) + (rc.d2 || 0)) + '× after the feedback.');
+    var totalRedos = (rc.d1 || 0) + (rc.d2 || 0) + (rc.d3 || 0) + (rc.d4 || 0);
+    if (totalRedos > 0) notes.push('Rethought a decision ' + totalRedos + '× after the feedback.');
     if (s.restarts) notes.push('Restarted with a fresh slate ' + s.restarts + '×.');
     if (notes.length) {
       d.appendChild(el('div', { class: 'card voice', style: 'border-left:3px solid var(--s3)' }, [
@@ -802,6 +879,35 @@
               }).concat(rationales.slice(0, 2).map(function (r) {
                 return noteCard('In their words — ' + displayName(r.s, r.i), '“' + r.text + '”');
               })))
+          ])
+        ];
+      });
+    });
+
+    // 5b · the two OB dilemmas (universal) — one slide each
+    [{ dec: SIM.DECISION3, tally: agg.d3, notes: T.d3Notes },
+     { dec: SIM.DECISION4, tally: agg.d4, notes: T.d4Notes }].forEach(function (blk) {
+      slides.push(function () {
+        var total = blk.dec.options.reduce(function (t, o) { return t + (blk.tally[o.id] || 0); }, 0);
+        var trapN = blk.tally[blk.notes.trap] || 0;
+        return [
+          el('div', { class: 'kicker', text: 'OB dilemma · ' + blk.notes.concept }),
+          el('h2', { text: blk.dec.title }),
+          el('div', { class: 'two-col' }, [
+            chartInto({
+              title: 'How the class chose', sub: total + ' decided · ' + pct(trapN, total) + '% took the trap',
+              empty: 'No one has reached this decision yet.',
+              rows: blk.dec.options.map(function (o) {
+                var n = blk.tally[o.id] || 0;
+                return { label: o.letter + ' · ' + o.title, count: n, pct: pct(n, total), color: VERDICT_COLOR[o.verdict] };
+              }),
+              legend: [{ label: 'strong', color: VERDICT_COLOR.strong }, { label: 'middle', color: VERDICT_COLOR.mixed }, { label: 'trap', color: VERDICT_COLOR.weak }]
+            }),
+            el('div', { style: 'display:grid; gap:10px' }, [
+              noteCard('The research', blk.notes.research),
+              noteCard('The trap to surface', blk.notes.trapNote),
+              noteCard('Strong · Middle · Weak', blk.dec.options.map(function (o) { return o.letter + ') ' + blk.notes.options[o.id]; }).join('  '))
+            ])
           ])
         ];
       });
@@ -1027,21 +1133,33 @@
     connect();
   }
 
+  function tryKey(candidate, onFail) {
+    key = candidate;
+    refreshSnapshot().then(function () {
+      // localStorage so the key persists across browser restarts on this device.
+      try { localStorage.setItem(KEY_LS, key); } catch (e) { /* ignore */ }
+      enter();
+    }).catch(function (err) { key = null; if (onFail) onFail(err); });
+  }
+
   function boot() {
-    key = sessionStorage.getItem(KEY_LS);
-    if (key) {
-      refreshSnapshot().then(enter).catch(function () { sessionStorage.removeItem(KEY_LS); key = null; });
+    // 1) A bookmarkable link: /instructor?key=YOURKEY unlocks and remembers, then
+    //    strips the key from the address bar. Bookmark it once, never type again.
+    var params = new URLSearchParams(location.search);
+    var urlKey = params.get('key');
+    if (urlKey) {
+      history.replaceState(null, '', location.pathname);
+      tryKey(urlKey, function () { /* fall through to the gate below */ });
+    } else {
+      // 2) Otherwise reuse the saved key from a previous visit on this device.
+      var saved = null;
+      try { saved = localStorage.getItem(KEY_LS); } catch (e) { /* ignore */ }
+      if (saved) tryKey(saved, function () { try { localStorage.removeItem(KEY_LS); } catch (e) {} });
     }
 
     $('#gate-form').addEventListener('submit', function (ev) {
       ev.preventDefault();
-      key = $('#gate-key').value;
-      refreshSnapshot().then(function () {
-        sessionStorage.setItem(KEY_LS, key);
-        enter();
-      }).catch(function (err) {
-        $('#gate-error').textContent = err.message;
-      });
+      tryKey($('#gate-key').value, function (err) { $('#gate-error').textContent = err.message; });
     });
 
     $('#session-select').addEventListener('change', function () {
@@ -1054,6 +1172,13 @@
       (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(function () {
         toast('Join link copied: ' + link);
       }).catch(function () { prompt('Copy this join link:', link); });
+    });
+
+    $('#btn-bookmark').addEventListener('click', function () {
+      var link = location.origin + '/instructor?key=' + encodeURIComponent(key);
+      (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(function () {
+        toast('Instructor link copied — bookmark it to skip the key next time.');
+      }).catch(function () { prompt('Bookmark this instructor link (it includes your key):', link); });
     });
 
     $('#btn-new-session').addEventListener('click', function () {
