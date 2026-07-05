@@ -113,6 +113,7 @@ function studentView(s) {
   return {
     id: s.id, name: s.name, code: s.code, step: s.step,
     decisions: s.decisions, reflection: s.reflection,
+    firstInstinct: s.firstInstinct || {}, redoCounts: s.redoCounts || { d1: 0, d2: 0 }, restarts: s.restarts || 0,
     createdAt: s.createdAt, completedAt: s.completedAt,
     metrics: computed.values, stages: computed.stages,
     ending: (s.decisions.d1 && s.decisions.d2)
@@ -205,6 +206,9 @@ async function handleApi(req, res, url) {
       step: 'briefing',
       decisions: {},
       reflection: null,
+      firstInstinct: {},        // first choice at each point, preserved across redos
+      redoCounts: { d1: 0, d2: 0 },
+      restarts: 0,              // full "fresh slate" restarts
       createdAt: Date.now(),
       lastSeenAt: Date.now(),
       completedAt: null
@@ -252,20 +256,72 @@ async function handleApi(req, res, url) {
     const choice = String(body.choice || '');
     const rationale = cleanText(body.rationale, TEXT_MAX);
 
+    if (!s.firstInstinct) s.firstInstinct = {};
     if (point === 'd1') {
       if (s.decisions.d1) return json(res, 409, { error: 'Decision 1 is already locked in.' });
       if (!SIM.d1Option(choice)) return json(res, 400, { error: 'Unknown option.' });
+      if (!s.firstInstinct.d1) s.firstInstinct.d1 = choice;
       s.decisions.d1 = { choice, rationale, at: Date.now() };
       s.step = 'outcome1';
     } else if (point === 'd2') {
       if (!s.decisions.d1) return json(res, 409, { error: 'Decision 1 comes first.' });
       if (s.decisions.d2) return json(res, 409, { error: 'Decision 2 is already locked in.' });
       if (!SIM.d2Option(s.decisions.d1.choice, choice)) return json(res, 400, { error: 'Unknown option.' });
+      if (!s.firstInstinct.d2) s.firstInstinct.d2 = choice;
       s.decisions.d2 = { choice, rationale, at: Date.now() };
       s.step = 'outcome2';
     } else {
       return json(res, 400, { error: 'Unknown decision point.' });
     }
+    s.lastSeenAt = Date.now();
+    changed();
+    return json(res, 200, { student: studentView(s) });
+  }
+
+  // Reopen the decision the student is currently reviewing so they can try again.
+  // Only allowed "in the moment" — while on that decision's outcome screen.
+  if (route === 'POST /api/redo-decision') {
+    const body = await readBody(req);
+    const s = getStudent(body);
+    if (!s) return json(res, 401, { error: 'Unknown student.' });
+    if (!s.firstInstinct) s.firstInstinct = {};
+    if (!s.redoCounts) s.redoCounts = { d1: 0, d2: 0 };
+    const point = String(body.point || '');
+
+    if (point === 'd1') {
+      if (s.step !== 'outcome1') return json(res, 409, { error: 'You can only rethink this decision right after making it.' });
+      s.redoCounts.d1 = (s.redoCounts.d1 || 0) + 1;
+      // Redoing the opening also discards the (not-yet-made) second decision + its tracking.
+      delete s.decisions.d1;
+      delete s.decisions.d2;
+      s.firstInstinct.d2 = null;
+      s.redoCounts.d2 = 0;
+      s.step = 'decision1';
+    } else if (point === 'd2') {
+      if (s.step !== 'outcome2') return json(res, 409, { error: 'You can only rethink this decision right after making it.' });
+      s.redoCounts.d2 = (s.redoCounts.d2 || 0) + 1;
+      delete s.decisions.d2;
+      s.step = 'decision2';
+    } else {
+      return json(res, 400, { error: 'Unknown decision point.' });
+    }
+    s.lastSeenAt = Date.now();
+    changed();
+    return json(res, 200, { student: studentView(s) });
+  }
+
+  // Fresh slate — wipe this student's run back to the briefing, keeping who they are.
+  if (route === 'POST /api/restart') {
+    const body = await readBody(req);
+    const s = getStudent(body);
+    if (!s) return json(res, 401, { error: 'Unknown student.' });
+    s.decisions = {};
+    s.reflection = null;
+    s.firstInstinct = {};
+    s.redoCounts = { d1: 0, d2: 0 };
+    s.restarts = (s.restarts || 0) + 1;
+    s.completedAt = null;
+    s.step = 'briefing';
     s.lastSeenAt = Date.now();
     changed();
     return json(res, 200, { student: studentView(s) });

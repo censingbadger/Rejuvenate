@@ -293,6 +293,47 @@
     ]);
   }
 
+  /* Verdict-colored coaching callout: why the choice worked or didn't,
+     grounded in the teaching notes. */
+  var VERDICT_META = {
+    strong: { icon: '✓', label: 'Strong call', cls: 'v-strong' },
+    mixed:  { icon: '◐', label: 'A partial win', cls: 'v-mixed' },
+    weak:   { icon: '!', label: 'This didn’t land', cls: 'v-weak' }
+  };
+
+  function feedbackCallout(fb) {
+    if (!fb) return null;
+    var meta = VERDICT_META[fb.verdict] || VERDICT_META.mixed;
+    return el('div', { class: 'card feedback-card ' + meta.cls }, [
+      el('div', { class: 'fb-head' }, [
+        el('span', { class: 'fb-badge', text: meta.icon + ' ' + meta.label }),
+        el('span', { class: 'fb-title', text: fb.title })
+      ]),
+      el('p', { class: 'fb-text', text: fb.text })
+    ]);
+  }
+
+  function redoDecision(point) {
+    api('/api/redo-decision', authed({ point: point })).then(function (data) {
+      state = data.student;
+      render();
+    }).catch(function (err) { toast(err.message); });
+  }
+
+  // "Rethink this decision" + primary continue button, side by side.
+  function outcomeNav(point, continueLabel, onContinue, revealMs) {
+    var nav = el('div', { class: 'stage-nav outcome-nav reveal' }, [
+      el('button', {
+        class: 'btn btn-ghost', text: '↺ Rethink this decision',
+        title: 'Go back and try a different choice',
+        onclick: function () { redoDecision(point); }
+      }),
+      el('button', { class: 'btn', text: continueLabel, onclick: onContinue })
+    ]);
+    if (!REDUCED) nav.style.animationDelay = revealMs + 'ms';
+    return nav;
+  }
+
   function renderOutcome1() {
     var root = stageRoot();
     var branch = SIM.BRANCHES[state.decisions.d1.choice];
@@ -301,14 +342,14 @@
     branch.interlude.forEach(function (p) { feed.appendChild(el('p', { class: 'case-p', text: p })); });
     branch.reactions.forEach(function (v, i) { feed.appendChild(msgBubble(v, 400 + i * 700)); });
 
-    var btn = el('button', { class: 'btn', text: 'Face your next decision →', onclick: function () { goStep('decision2'); } });
-    var nav = el('div', { class: 'stage-nav reveal' }, [el('span'), btn]);
-    if (!REDUCED) nav.style.animationDelay = (400 + branch.reactions.length * 700) + 'ms';
+    var nav = outcomeNav('d1', 'Face your next decision →', function () { goStep('decision2'); },
+      400 + branch.reactions.length * 700);
 
     root.appendChild(frag([
       timeDivider(branch.timeLabel),
       stageHead('What happened next', branch.outcomeTitle),
       decisionImpactPanel(),
+      feedbackCallout(SIM.feedbackFor('d1', state.decisions.d1.choice)),
       feed, nav
     ]));
   }
@@ -322,16 +363,14 @@
       el('p', { class: 'case-p', text: 'You lock in the call: ' + opt.title.toLowerCase() + '. Word travels fast. Over the following weeks, the consequences take shape.' }
       )].concat(reactions.map(function (v, i) { return msgBubble(v, 400 + i * 700); })));
 
-    var nav = el('div', { class: 'stage-nav reveal' }, [
-      el('span'),
-      el('button', { class: 'btn', text: 'See where this leads →', onclick: function () { goStep('ending'); } })
-    ]);
-    if (!REDUCED) nav.style.animationDelay = (400 + reactions.length * 700) + 'ms';
+    var nav = outcomeNav('d2', 'See where this leads →', function () { goStep('ending'); },
+      400 + reactions.length * 700);
 
     root.appendChild(frag([
       timeDivider('The weeks that follow'),
       stageHead('Consequences', 'The company reacts'),
       decisionImpactPanel(),
+      feedbackCallout(SIM.feedbackFor('d2', d1, d2)),
       feed, nav
     ]));
   }
@@ -455,6 +494,17 @@
   }
 
   /* ---------------- done ---------------- */
+  function restart() {
+    if (!confirm('Start over with a fresh slate? Your current run will be cleared and you’ll begin again from the briefing.')) return;
+    api('/api/restart', authed()).then(function (data) {
+      state = data.student;
+      chapterIdx = 0;
+      prevMetrics = null;
+      renderMetrics(false);
+      render();
+    }).catch(function (err) { toast(err.message); });
+  }
+
   function renderDone() {
     var root = stageRoot();
     var e = state.ending;
@@ -466,7 +516,10 @@
       el('h2', { text: 'You’re done, ' + state.name.split(' ')[0] + '.' }),
       el('p', { class: 'case-p', text: 'Your ending: ' + e.icon + ' “' + e.title + '” — one of six ways this story can go. Your choices, rationale, and recommendations are with your instructor for the class debrief.' }),
       el('div', { class: 'rank-slots', style: 'justify-content:center' }, picks),
-      el('p', { class: 'small', text: 'Keep this tab open — you’ll want your path in front of you during the discussion.' })
+      el('div', { class: 'done-actions' }, [
+        el('button', { class: 'btn', text: '↻ Try again with a fresh slate', onclick: restart }),
+        el('span', { class: 'small', text: 'Explore a different path — your first run stays recorded for the debrief.' })
+      ])
     ]));
   }
 
