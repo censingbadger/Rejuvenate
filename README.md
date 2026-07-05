@@ -16,7 +16,7 @@ Requires Node 18+. No dependencies to install.
 node server.js
 ```
 
-- **Students:** `http://localhost:3000/` — join with a name + class code (a default session with code **`OPEN`** exists out of the box)
+- **Students:** `http://localhost:3000/` — just enter a name (the code box is pre-filled with **`DEMO`**, an always-available session, so no code is needed to try it)
 - **Instructor:** `http://localhost:3000/instructor` — facilitator key defaults to **`rejuvenate`**
 
 ```bash

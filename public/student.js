@@ -472,8 +472,10 @@
     $('#credit-join').textContent = SIM.META.copyright;
     $('#credit-sim').textContent = SIM.META.copyright;
 
+    // Pre-fill from the instructor's shared link (?code=…), otherwise default to the
+    // demo session so a student can join with just their name.
     var params = new URLSearchParams(location.search);
-    if (params.get('code')) $('#join-code').value = params.get('code').toUpperCase();
+    $('#join-code').value = params.get('code') ? params.get('code').toUpperCase() : 'DEMO';
 
     var saved = null;
     try { saved = JSON.parse(localStorage.getItem(LS_KEY)); } catch (e) { /* ignore */ }
