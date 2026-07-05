@@ -338,6 +338,25 @@ table.twin td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .time-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .time-divider::before, .time-divider::after { content: ""; flex: 1; border-top: 1px solid var(--grid); }
 
+/* decision impact scorecard — green/red point feedback on the last choice */
+.impact-panel { padding: 16px 18px; margin-bottom: 4px; }
+.impact-title { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+.impact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 640px) { .impact-grid { grid-template-columns: repeat(2, 1fr); } }
+.impact-cell { padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); }
+.impact-cell.up { background: color-mix(in srgb, var(--delta-up) 9%, var(--surface)); border-color: color-mix(in srgb, var(--delta-up) 30%, transparent); }
+.impact-cell.down { background: color-mix(in srgb, var(--delta-down) 9%, var(--surface)); border-color: color-mix(in srgb, var(--delta-down) 30%, transparent); }
+.impact-label { font-size: 0.72rem; font-weight: 600; color: var(--ink-2); }
+.impact-delta { font-size: 1.3rem; font-weight: 750; margin: 4px 0 1px; letter-spacing: -0.01em; }
+.impact-delta.flat { font-size: 0.92rem; font-weight: 600; }
+.impact-new { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.impact-delta:not(.flat) { animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.impact-cell:nth-child(1) .impact-delta { animation-delay: 0.06s; }
+.impact-cell:nth-child(2) .impact-delta { animation-delay: 0.14s; }
+.impact-cell:nth-child(3) .impact-delta { animation-delay: 0.22s; }
+.impact-cell:nth-child(4) .impact-delta { animation-delay: 0.30s; }
+@keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.09); } 100% { transform: scale(1); opacity: 1; } }
+
 /* ending */
 .ending-banner { padding: 26px 26px 22px; position: relative; overflow: hidden; }
 .ending-banner .icon { font-size: 2rem; }

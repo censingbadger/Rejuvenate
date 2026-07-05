@@ -265,6 +265,34 @@
   }
 
   /* ---------------- outcomes ---------------- */
+
+  /* Green/red scorecard of how the most recent decision moved each metric.
+     Reads the last two authoritative stages the server computed, so the
+     numbers shown always match the strip at the top of the screen. */
+  function decisionImpactPanel() {
+    var stages = state.stages;
+    if (!stages || stages.length < 2) return null;
+    var after = stages[stages.length - 1].values;
+    var before = stages[stages.length - 2].values;
+
+    var cells = SIM.METRICS.map(function (m) {
+      var d = after[m.id] - before[m.id];
+      var dir = d > 0 ? 'up' : d < 0 ? 'down' : 'flat';
+      var arrow = d > 0 ? '▲' : d < 0 ? '▼' : '±';
+      var sign = d > 0 ? '+' : d < 0 ? '−' : '';
+      return el('div', { class: 'impact-cell ' + dir }, [
+        el('div', { class: 'impact-label', text: m.icon + ' ' + m.label }),
+        el('div', { class: 'impact-delta delta ' + dir, text: d === 0 ? 'no change' : arrow + ' ' + sign + Math.abs(d) }),
+        el('div', { class: 'impact-new', text: 'now ' + after[m.id] })
+      ]);
+    });
+
+    return el('div', { class: 'card impact-panel reveal' }, [
+      el('div', { class: 'impact-title', text: 'How your choice moved the culture' }),
+      el('div', { class: 'impact-grid' }, cells)
+    ]);
+  }
+
   function renderOutcome1() {
     var root = stageRoot();
     var branch = SIM.BRANCHES[state.decisions.d1.choice];
@@ -280,6 +308,7 @@
     root.appendChild(frag([
       timeDivider(branch.timeLabel),
       stageHead('What happened next', branch.outcomeTitle),
+      decisionImpactPanel(),
       feed, nav
     ]));
   }
@@ -302,6 +331,7 @@
     root.appendChild(frag([
       timeDivider('The weeks that follow'),
       stageHead('Consequences', 'The company reacts'),
+      decisionImpactPanel(),
       feed, nav
     ]));
   }
