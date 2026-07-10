@@ -214,6 +214,13 @@
             text: 'People are already overworked — asking them to also design the solutions feels like one more burden. You and the senior leadership team review the buckets and decide which initiatives to pursue.',
             tag: 'Protect people’s time',
             deltas: { wellbeing: -6, trust: -15, alignment: 3, productivity: -4 }
+          },
+          {
+            id: 'consultants', letter: 'C',
+            title: 'Hire an external firm to design a top-tier wellness strategy',
+            text: 'Bring in a specialist wellness consultancy to design a best-in-class, benchmarked strategy. They’ve done this for bigger companies — let the experts build you a polished, comprehensive program.',
+            tag: 'Buy in expertise',
+            deltas: { wellbeing: 8, trust: -4, alignment: 8, productivity: 4 }
           }
         ]
       }
@@ -281,6 +288,11 @@
       { from: 'Liam', role: 'Senior Designer', text: 'We told them the problem was hours and silos. They gave us a mandatory seminar… during lunch. Did anyone read what we said in those forums?' },
       { from: 'Jake', role: 'Product Manager', text: 'The seminar attendance sheet is the most honest metric in the company — everyone’s there, nobody’s listening.' }
     ],
+    'forums:consultants': [
+      { from: 'WellCorp Advisory', role: 'Consultant deliverable', text: 'Please find attached your 84-page Wellness Excellence Framework™, benchmarked against industry leaders, with a five-pillar maturity model and recommended vendor stack.' },
+      { from: 'Elena', role: 'Software Developer', text: 'It’s… slick. But we spent hours in those forums telling you exactly what’s wrong here, and this reads like it could’ve been written for any company. Did any of that make it in?' },
+      { from: 'Carla Martinez', role: 'CEO', text: 'It’s a professional piece of work and the board likes seeing a name-brand firm on it. I just can’t tell how much of it actually fits us — or whether people will believe in a plan they didn’t build.' }
+    ],
     'pizza:more': [
       { from: 'Elena', role: 'Software Developer', text: 'Ice Cream Tuesdays. Sure. My back still hurts and I still worked Sunday, but sure — sprinkles.' },
       { from: 'Anonymous', role: 'Complaint box', text: 'I’d trade all the pizzas for a day off. (You’ve read forty versions of this note this month.)' },
@@ -294,18 +306,84 @@
   };
 
   /* ------------------------------------------------------------------ *
-   * Decisions 3 & 4 — universal OB-research dilemmas every student faces *
-   * regardless of their strategic path. Each is deliberately non-obvious *
-   * (the tempting, reflexive option is listed FIRST and is not the best  *
-   * one). Three tiers: strong / mixed (a solid middle) / weak. Every     *
-   * option carries its own metric deltas, coaching feedback, and         *
-   * employee reactions. Options are colored by neutral identity slots so *
-   * nothing telegraphs quality before the choice is made.                *
+   * Decisions 3, 4 & 5 — universal OB-research dilemmas every student    *
+   * faces regardless of their strategic path. Some are deliberately      *
+   * non-obvious (a tempting option that isn't the best). Tiers: strong / *
+   * mixed (a solid-but-limited middle) / weak. Every option carries its  *
+   * own metric deltas, coaching feedback, and employee reactions.        *
+   * Options are colored by neutral identity slots so nothing telegraphs  *
+   * quality before the choice is made.                                   *
    * ------------------------------------------------------------------ */
   var DECISION3 = {
     id: 'd3',
-    kicker: 'Month 10 — a retention crisis',
-    timeLabel: 'Month 10 — a resignation letter on your desk',
+    reportLabel: 'Scaling the pilot',
+    kicker: 'Month 10 — scaling the experiment',
+    timeLabel: 'Month 10 — the reduced-hours question goes company-wide',
+    outcomeTitle: 'You choose how to scale',
+    title: 'How do you take reduced hours company-wide?',
+    intro: 'A saner schedule has shown real promise in the teams that have tried it, and word has spread. Now the executive team wants a plan to extend it across the whole company — engineering, sales, marketing, support. How you roll it out will matter as much as the policy itself, because these teams do very different work.',
+    rationalePrompt: 'Why this call? (Optional — feeds the class debrief.)',
+    options: [
+      {
+        id: 'standardize', letter: 'A', slot: 1,
+        title: 'Standardize it — same reduced hours and clear targets for every team',
+        text: 'One clean, company-wide policy: the same reduced hours for everyone, with clear performance targets attached so output stays protected. Consistent, fair, and easy to announce and audit.',
+        tag: 'One rule for all',
+        verdict: 'mixed',
+        deltas: { wellbeing: 5, trust: 0, alignment: 6, productivity: -2 },
+        interlude: 'You roll out one uniform policy across the company. Leadership loves how clean it is. Then the teams whose work doesn’t fit the template start to strain.',
+        feedback: {
+          title: 'Clean — but one size doesn’t fit all',
+          text: 'Standardizing is appealing: it looks fair and it’s easy to communicate. But teams do genuinely different work — sales lives on quarter-end targets, engineering on incident load — so identical hours plus identical targets everywhere ignores those differences and leaves no room to learn and adjust. Bolting “clear performance targets” onto reduced hours can even intensify the squeeze. It helps some teams and strains others, because a policy applied equally isn’t the same as one applied appropriately.'
+        },
+        reactions: [
+          { from: 'Priya', role: 'Engineering Lead', text: 'The same rule for marketing-at-launch and support-on-call and us? Those jobs aren’t alike. There’s no room to adapt it to how we actually work.' },
+          { from: 'Mira', role: 'Sales', text: 'Reduced hours AND the same aggressive targets? At quarter-end that math just doesn’t close. Whoever wrote this doesn’t do my job.' },
+          { from: 'Carla Martinez', role: 'CEO', text: 'One clear policy for everyone — I can defend that to the board all day. Just keep an eye on the teams it doesn’t quite fit.' }
+        ]
+      },
+      {
+        id: 'refine', letter: 'B', slot: 2,
+        title: 'Follow up, refine on feedback, and scale gradually',
+        text: 'Don’t assume the pilot transfers. Run follow-ups with the teams that tried it, learn what broke and what held, refine the model, and extend it team by team — letting each team’s reality shape the rollout.',
+        tag: 'Iterate and scale',
+        verdict: 'strong',
+        deltas: { wellbeing: 10, trust: 10, alignment: 8, productivity: 8 },
+        interlude: 'You treat the rollout as a series of experiments, not an announcement. Each team you add teaches you something the last one didn’t, and the model gets sharper.',
+        feedback: {
+          title: 'Why this works — the feedback-loop lesson',
+          text: 'This is the iterative, evidence-driven approach. You don’t assume the pilot transfers untouched — you run follow-ups, learn what to keep and what to fix, and scale gradually so each team’s reality shapes the model. It adapts to the differences between teams instead of steamrolling them, and it builds trust because people watch their feedback actually change the plan. Slower than a big announcement, and far more durable.'
+        },
+        reactions: [
+          { from: 'Elena', role: 'Software Developer', text: 'They asked how the first rollout actually went before pushing it to us, then changed the parts that hadn’t worked. It feels built for how we really work.' },
+          { from: 'Carla Martinez', role: 'CEO', text: 'Slower than I’d like — but every team we add goes smoother than the last, and nothing’s blown up. Hard to argue with the trend line.' }
+        ]
+      },
+      {
+        id: 'resilience', letter: 'C', slot: 3,
+        title: 'Keep the pilot; give other teams resilience & time-management training',
+        text: 'Maintain reduced hours where they’re already working, and for the rest of the company, invest in resilience training and time-management workshops so people can better handle the pressure they’re under.',
+        tag: 'Build coping skills',
+        verdict: 'mixed',
+        deltas: { wellbeing: 4, trust: -2, alignment: 4, productivity: 2 },
+        interlude: 'The pilot teams keep their saner hours. Everyone else gets a calendar invite to a resilience workshop. The reaction splits along exactly that line.',
+        feedback: {
+          title: 'Helpful — but it shifts the burden onto people',
+          text: 'Keeping the pilot going is good, and coping skills aren’t worthless. But offering the other teams “training” instead of structural change quietly relocates the problem onto individuals — *you* manage your stress, *you* budget your time — while the 55-hour weeks and the workload that caused the burnout stay exactly where they are. OB calls these secondary, individual-level interventions: they treat the symptom, not the system, and people notice when they’re handed a workshop instead of a fix.'
+        },
+        reactions: [
+          { from: 'Jake', role: 'Product Manager', text: 'A time-management workshop. My problem isn’t that I can’t read a calendar — it’s that there’s three people’s work on it. But sure, I’ll learn to breathe.' },
+          { from: 'Mira', role: 'Sales', text: 'The pilot teams got their hours back. We got a webinar on resilience. Message received.' }
+        ]
+      }
+    ]
+  };
+
+  var DECISION4 = {
+    id: 'd4',
+    reportLabel: 'Retention crisis',
+    kicker: 'Month 11 — a retention crisis',
+    timeLabel: 'Month 11 — a resignation letter on your desk',
     outcomeTitle: 'You make the retention call',
     title: 'How do you stop the bleeding?',
     intro: 'Elena — your best developer, the one who first told you about the panic attacks — just got an outside offer for 30% more. HR analytics flags five more senior people as flight risks. In the budget meeting, the CFO’s instinct is fast and familiar: “Put money on the table — a company-wide retention bonus. We can’t afford to lose these people.” Everyone turns to you.',
@@ -365,10 +443,11 @@
     ]
   };
 
-  var DECISION4 = {
-    id: 'd4',
-    kicker: 'Month 11 — quarterly planning',
-    timeLabel: 'Month 11 — setting next quarter’s targets',
+  var DECISION5 = {
+    id: 'd5',
+    reportLabel: 'The performance bar',
+    kicker: 'Month 12 — quarterly planning',
+    timeLabel: 'Month 12 — setting next quarter’s targets',
     outcomeTitle: 'You reset the bar',
     title: 'What do you do about the “bar”?',
     intro: 'Quarterly planning. The punishing stretch goals — the famous “bar is set so high” — are exactly what’s burning people out. But leadership also credits them for the growth, and the VP of Product wants next quarter’s targets from you by Friday. Three schools of thought are on the table.',
@@ -465,6 +544,11 @@
         title: 'Why this fell short',
         text: 'You gathered five buckets of employee feedback, then decided without them. Generic, top-down initiatives borrowed from other companies miss Rejuvenate’s actual problems, and mandatory seminars breed resentment. In Jess’s framing, employees feel disconnected and skeptical of the intent — soliciting voice and then overruling it costs more trust than never asking.'
       },
+      'forums:consultants': {
+        verdict: 'mixed',
+        title: 'Polished, but whose plan is it?',
+        text: 'A competent, benchmarked strategy is better than a mandatory-seminar mandate — and leadership likes a credible name on it. But you just ran forums that surfaced Rejuvenate’s specific problems, then handed the design to outsiders, so the plan reads as generic and the employee voice you gathered goes unused. Procedural justice research is clear: people commit to changes they help shape. Expertise can inform the fix; it can’t substitute for ownership.'
+      },
       'trial:iterate': {
         verdict: 'strong',
         title: 'Why this worked',
@@ -543,8 +627,24 @@
       ],
       lesson: 'Recognizing a superficial fix and correcting course rebuilds trust — but listening only pays off when it leads somewhere.'
     },
+    'forums:consultants': {
+      id: 'forums:consultants', rank: 4, tone: 'mixed', icon: '💼',
+      title: 'The Off-the-Shelf Strategy',
+      summary: [
+        'The consultancy delivered — a glossy, benchmarked wellness framework with maturity models and a vendor stack. On paper, Rejuvenate now has a “best-in-class” program, and the board is reassured to see a name-brand firm’s logo on the plan.',
+        'Some of it genuinely helps: the mental-health vendor is good, the ergonomic standards are real. But a year in, the framework sits at maybe half-adoption. Employees who poured specifics into the forums see a generic plan that could have been written for any company, and a plan you didn’t build together is a plan few feel they own.',
+        'You spent real money and bought a competent starting point — but you also let the trust and energy from those forums cool while outsiders did the thinking. The strategy is fine; the buy-in never fully arrived.'
+      ],
+      bullets: [
+        'A polished, benchmarked strategy — competent and credible to the board',
+        'Some components (mental-health vendor, ergonomics) genuinely land',
+        'But it reads as generic; the specific forum feedback goes largely unused',
+        'Low ownership — people don’t commit to a plan they didn’t help shape'
+      ],
+      lesson: 'Outside expertise can inform a fix, but it can’t manufacture ownership. Procedural justice — people commit to what they help build — is why co-creation beats even a professionally designed plan.'
+    },
     'trial:blanket': {
-      id: 'trial:blanket', rank: 4, tone: 'poor', icon: '⚠',
+      id: 'trial:blanket', rank: 5, tone: 'poor', icon: '⚠',
       title: 'Too Much, Too Fast',
       summary: [
         'The announcement got applause in the all-hands and chaos in the calendar. Sales hit quarter-end with a third fewer hours and the same targets. Marketing’s launch slipped, then slipped again. No feedback mechanism existed to catch any of it — you found out about problems when they became missed deadlines.',
@@ -560,7 +660,7 @@
       lesson: 'A pilot is evidence, not a mandate. Scaling a result without understanding why it worked — or building feedback to catch where it doesn’t — turns a win into a cautionary tale.'
     },
     'forums:topdown': {
-      id: 'forums:topdown', rank: 5, tone: 'poor', icon: '📉',
+      id: 'forums:topdown', rank: 6, tone: 'poor', icon: '📉',
       title: 'Heard, Then Overruled',
       summary: [
         'The forums raised expectations; the top-down decisions broke them. Leadership picked generic solutions borrowed from other companies — mandatory wellness seminars, an app subscription — with little connection to the five buckets employees had painstakingly filled.',
@@ -576,7 +676,7 @@
       lesson: 'Soliciting voice creates an obligation to use it. Feedback that disappears into a leadership room is worse than no feedback process at all.'
     },
     'pizza:more': {
-      id: 'pizza:more', rank: 6, tone: 'bad', icon: '🍕',
+      id: 'pizza:more', rank: 7, tone: 'bad', icon: '🍕',
       title: 'The Pizza Paradox',
       summary: [
         'The novelty wore off fast. Ice Cream Tuesdays and movie nights came to feel like distractions — proof, people said, that leadership didn’t understand the real problems. The complaint box filled; nothing visible came out of it. A one-time stress-management workshop only sharpened the irony.',
@@ -638,11 +738,23 @@
       'trial:blanket': 'Surface-level read of the feedback, immediate company-wide rollout, no feedback mechanism. Departments with unique demands (sales, marketing at launch) struggle; missed deadlines; mixed employee response; reputation risk.',
       'forums:team': 'Cross-functional team → pilots (flexible schedule, offline weekends, revamped breakroom) → feedback loops → formal wellness policy, consultants, ergonomic furniture, Mindful Mondays. Absenteeism drops, engagement soars, hustle → health-first.',
       'forums:topdown': 'Top-down decisions after soliciting voice: generic solutions, mandatory seminars. Employees feel disconnected; initiatives lack relevance; resentment grows. Key teaching moment: asking-then-ignoring is worse than not asking.',
+      'forums:consultants': 'Mid-tier: an external firm delivers a polished, benchmarked strategy — competent and board-friendly, better than a top-down mandate. But it sidelines the forum feedback, reads as generic, and lands at low adoption because employees don’t own a plan they didn’t build. Teaching point: procedural justice — expertise informs, it doesn’t create ownership.',
       'pizza:more': 'Doubling down on perks: novelty wears off, events read as distractions, leadership seems out of touch. “I’d trade all the pizzas for a day off.” Turnover rises, especially top talent; negative industry word-of-mouth.',
       'pizza:feedback': 'Partial recovery: perks kept in proportion, Feedback Fridays + ergonomic fixes make people feel heard. Slight uptick in morale; deeper systemic issues still present.'
     },
-    // OB-research dilemmas. The "trap" is the option students most often pick.
+    // OB-research dilemmas. Where a "trap" is set, it's the option students most often pick.
     d3Notes: {
+      concept: 'Change management: contingency & feedback loops',
+      research: 'Contingency thinking (one size does not fit all — different teams, different work); iterative, feedback-driven change (refine-and-scale — the class feedback-loop lesson); and the limits of secondary, individual-level interventions (resilience / stress-management training shifts responsibility onto individuals without changing the work — primary vs. secondary/tertiary interventions in occupational-health research).',
+      best: 'refine',
+      note: 'No outright-wrong answer here, but only B builds in learning. A (standardize + targets for every team) treats different teams as identical and piles on pressure — no room to test and refine. C (resilience / time-management training) is the subtle trap: it looks supportive but relocates the fix onto individuals ("manage your own stress") while the workload stays put. Ask the class: which option changes the system, and which just asks people to cope with it?',
+      options: {
+        standardize: 'Middle — one uniform policy + targets for all. Clean and board-friendly, but ignores department differences and leaves no room to test and refine.',
+        refine: 'Strong — follow-ups, refine on feedback, scale gradually. The feedback-loop lesson; adapts to team differences and builds trust.',
+        resilience: 'Middle — keep the pilot, train everyone else in resilience / time management. A secondary, individual-level fix that shifts the burden onto employees without structural change.'
+      }
+    },
+    d4Notes: {
       concept: 'Motivation: intrinsic vs. extrinsic',
       research: 'Herzberg’s two-factor theory (pay is a hygiene factor, not a motivator); Self-Determination Theory (Deci & Ryan — autonomy, competence, relatedness); the overjustification effect (large extrinsic rewards can crowd out intrinsic motivation).',
       trap: 'bonus',
@@ -653,7 +765,7 @@
         fairpay: 'Middle — correct genuine pay inequities + ease the crunch. Removes a real dissatisfier but leaves the work itself unredesigned; keeps some, not all.'
       }
     },
-    d4Notes: {
+    d5Notes: {
       concept: 'Goal-setting theory and its dark side',
       research: 'Locke & Latham’s goal-setting theory (specific, challenging goals beat “do your best”); participative goal-setting raises commitment; learning vs. performance goals; the “dark side” (Ordóñez, Schweitzer, Galinsky & Bazerman — Goals Gone Wild: narrow high-pressure goals cause tunnel vision, unethical shortcuts, and burnout).',
       trap: 'nogoals',
@@ -729,7 +841,7 @@
     runOfShow: [
       { phase: 'Join & setup', minutes: 5, detail: 'Project the join link and class code. Students enter names; watch the roster fill on the dashboard.' },
       { phase: 'Individual play — briefing & Decision 1', minutes: 10, detail: 'Students read the case chapters and lock in their first move. Use the timer; the funnel shows who is still reading.' },
-      { phase: 'Individual play — Decisions 2–4', minutes: 14, detail: 'Follow-through, then the two OB dilemmas (retention crisis, the performance bar), each with feedback. Endings and the leadership report card reveal. Nudge stragglers via the progress column.' },
+      { phase: 'Individual play — Decisions 2–5', minutes: 16, detail: 'Follow-through, then the three OB dilemmas (scaling the pilot, retention crisis, the performance bar), each with feedback. Endings and the leadership report card reveal. Nudge stragglers via the progress column.' },
       { phase: 'Reflection memo', minutes: 5, detail: 'Students rank their top-3 initiatives and justify them to the CEO/finance director — feeds the leaderboard.' },
       { phase: 'Debrief', minutes: 25, detail: 'Switch to Debrief mode and walk the slides: participation → Decision 1 → branches → endings → metrics → initiative leaderboard → theory lens → discussion questions.' }
     ],
@@ -745,7 +857,7 @@
   /* ------------------------------------------------------------------ *
    * Progression & scoring                                               *
    * ------------------------------------------------------------------ */
-  var STEPS = ['briefing', 'decision1', 'outcome1', 'decision2', 'outcome2', 'decision3', 'outcome3', 'decision4', 'outcome4', 'ending', 'reflection', 'done'];
+  var STEPS = ['briefing', 'decision1', 'outcome1', 'decision2', 'outcome2', 'decision3', 'outcome3', 'decision4', 'outcome4', 'decision5', 'outcome5', 'ending', 'reflection', 'done'];
 
   function stepIndex(step) { return STEPS.indexOf(step); }
 
@@ -761,8 +873,14 @@
     return branch ? optById(branch.decision.options, id) : null;
   }
 
-  function d3Option(id) { return optById(DECISION3.options, id); }
-  function d4Option(id) { return optById(DECISION4.options, id); }
+  // The three universal decisions, in flow order.
+  var UNIVERSAL = { d3: DECISION3, d4: DECISION4, d5: DECISION5 };
+  var UNIVERSAL_ORDER = ['d3', 'd4', 'd5'];
+  function udDecision(point) { return UNIVERSAL[point] || null; }
+  function udOption(point, id) { return UNIVERSAL[point] ? optById(UNIVERSAL[point].options, id) : null; }
+  function d3Option(id) { return udOption('d3', id); }
+  function d4Option(id) { return udOption('d4', id); }
+  function d5Option(id) { return udOption('d5', id); }
 
   function endingFor(d1, d2) {
     return ENDINGS[d1 + ':' + d2] || null;
@@ -790,21 +908,24 @@
     if (opt1) apply(opt1.deltas, 'After decision 1');
     var opt2 = (opt1 && decisions.d2) ? d2Option(opt1.id, decisions.d2.choice) : null;
     if (opt2) apply(opt2.deltas, 'After decision 2');
-    var opt3 = (opt2 && decisions.d3) ? d3Option(decisions.d3.choice) : null;
-    if (opt3) apply(opt3.deltas, 'After decision 3');
-    var opt4 = (opt3 && decisions.d4) ? d4Option(decisions.d4.choice) : null;
-    if (opt4) apply(opt4.deltas, 'After decision 4');
+    // Universal decisions 3→4→5, each applies only if the chain before it did.
+    var chain = opt2, n = 3;
+    UNIVERSAL_ORDER.forEach(function (pt) {
+      var opt = (chain && decisions && decisions[pt]) ? udOption(pt, decisions[pt].choice) : null;
+      if (opt) apply(opt.deltas, 'After decision ' + n);
+      chain = opt; n++;
+    });
 
     return { values: values, stages: stages };
   }
 
-  // A four-line "leadership report card": each decision + how it graded.
-  // Verdicts: strong (2) / mixed (1) / weak (0). Used on the ending screen
-  // and by the instructor debrief.
+  // The "leadership report card": each decision + how it graded.
+  // Verdicts: strong (2) / mixed (1) / weak (0). Bands are ratio-based so the
+  // grade holds up as the number of decisions changes.
   var GRADE_BANDS = [
-    { min: 7, label: 'Exemplary', blurb: 'Four calls, four that hold up. This is what evidence-based, humane leadership looks like.' },
-    { min: 5, label: 'Strong, with gaps', blurb: 'Mostly sound judgment, with a call or two that left value — or people — on the table.' },
-    { min: 3, label: 'Uneven', blurb: 'Some real instincts, undercut by choices that looked right but worked against you.' },
+    { min: 0.85, label: 'Exemplary', blurb: 'Call after call that holds up. This is what evidence-based, humane leadership looks like.' },
+    { min: 0.6, label: 'Strong, with gaps', blurb: 'Mostly sound judgment, with a call or two that left value — or people — on the table.' },
+    { min: 0.35, label: 'Uneven', blurb: 'Some real instincts, undercut by choices that looked right but worked against you.' },
     { min: 0, label: 'Struggling', blurb: 'The reflexive, obvious moves dominated — and the research explains why they misfired.' }
   ];
 
@@ -820,14 +941,11 @@
       var o2 = d2Option(decisions.d1.choice, decisions.d2.choice), v2 = (FEEDBACK.d2[decisions.d1.choice + ':' + decisions.d2.choice] || {}).verdict;
       items.push({ label: 'Follow-through', title: o2 ? o2.title : decisions.d2.choice, verdict: v2 });
     }
-    if (decisions.d3) {
-      var o3 = d3Option(decisions.d3.choice);
-      items.push({ label: 'Retention crisis', title: o3 ? o3.title : decisions.d3.choice, verdict: o3 ? o3.verdict : null });
-    }
-    if (decisions.d4) {
-      var o4 = d4Option(decisions.d4.choice);
-      items.push({ label: 'The performance bar', title: o4 ? o4.title : decisions.d4.choice, verdict: o4 ? o4.verdict : null });
-    }
+    UNIVERSAL_ORDER.forEach(function (pt) {
+      if (!decisions[pt]) return;
+      var o = udOption(pt, decisions[pt].choice);
+      items.push({ label: UNIVERSAL[pt].reportLabel, title: o ? o.title : decisions[pt].choice, verdict: o ? o.verdict : null });
+    });
     return items;
   }
 
@@ -835,8 +953,9 @@
     var items = decisionScorecard(decisions);
     var score = 0, max = items.length * 2;
     items.forEach(function (it) { score += verdictScore(it.verdict); });
+    var ratio = max ? score / max : 0;
     var band = GRADE_BANDS[GRADE_BANDS.length - 1];
-    for (var i = 0; i < GRADE_BANDS.length; i++) { if (score >= GRADE_BANDS[i].min) { band = GRADE_BANDS[i]; break; } }
+    for (var i = 0; i < GRADE_BANDS.length; i++) { if (ratio >= GRADE_BANDS[i].min) { band = GRADE_BANDS[i]; break; } }
     return { score: score, max: max, label: band.label, blurb: band.blurb, items: items };
   }
 
@@ -875,6 +994,10 @@
     OUTCOME2_REACTIONS: OUTCOME2_REACTIONS,
     DECISION3: DECISION3,
     DECISION4: DECISION4,
+    DECISION5: DECISION5,
+    UNIVERSAL_ORDER: UNIVERSAL_ORDER,
+    udDecision: udDecision,
+    udOption: udOption,
     FEEDBACK: FEEDBACK,
     feedbackFor: feedbackFor,
     optionFeedback: optionFeedback,
@@ -887,6 +1010,7 @@
     d2Option: d2Option,
     d3Option: d3Option,
     d4Option: d4Option,
+    d5Option: d5Option,
     endingFor: endingFor,
     computeMetrics: computeMetrics,
     decisionScorecard: decisionScorecard,
