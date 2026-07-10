@@ -78,14 +78,13 @@
       liveNow: 0, completed: 0, reachedEnding: 0,
       d1: { trial: 0, forums: 0, pizza: 0 },
       d2: { trial: {}, forums: {}, pizza: {} },
-      d3: {}, d4: {},
+      d3: {}, d4: {}, d5: {},
       endings: {}, durations: [],
       metricSums: {}, metricN: 0,
       initiativeScore: {}, initiativePicks: {},
       stepBuckets: { reading: 0, deciding: 0, wrapping: 0, done: 0 }
     };
-    SIM.DECISION3.options.forEach(function (o) { agg.d3[o.id] = 0; });
-    SIM.DECISION4.options.forEach(function (o) { agg.d4[o.id] = 0; });
+    SIM.UNIVERSAL_ORDER.forEach(function (pt) { SIM.udDecision(pt).options.forEach(function (o) { agg[pt][o.id] = 0; }); });
     SIM.METRICS.forEach(function (m) { agg.metricSums[m.id] = 0; });
     var now = snap.now || Date.now();
 
@@ -93,7 +92,7 @@
       if (now - s.lastSeenAt < 90000 && s.step !== 'done') agg.liveNow++;
       var si = SIM.stepIndex(s.step);
       var b = s.step === 'briefing' ? 'reading'
-        : si <= SIM.stepIndex('outcome4') ? 'deciding'
+        : si <= SIM.stepIndex('outcome5') ? 'deciding'
         : (s.step === 'ending' || s.step === 'reflection') ? 'wrapping' : 'done';
       agg.stepBuckets[b]++;
 
@@ -106,8 +105,9 @@
         agg.metricN++;
         SIM.METRICS.forEach(function (m) { agg.metricSums[m.id] += s.metrics[m.id]; });
       }
-      if (s.decisions.d3) agg.d3[s.decisions.d3.choice] = (agg.d3[s.decisions.d3.choice] || 0) + 1;
-      if (s.decisions.d4) agg.d4[s.decisions.d4.choice] = (agg.d4[s.decisions.d4.choice] || 0) + 1;
+      SIM.UNIVERSAL_ORDER.forEach(function (pt) {
+        if (s.decisions[pt]) agg[pt][s.decisions[pt].choice] = (agg[pt][s.decisions[pt].choice] || 0) + 1;
+      });
       if (s.completedAt) {
         agg.completed++;
         agg.durations.push(s.completedAt - s.createdAt);
@@ -332,15 +332,23 @@
         text: best.m.label + ' ranged from ' + best.mn + ' to ' + best.mx + ' across the class (a ' + best.spread + '-point spread, the widest of the four). That gap is the ROI conversation: what would make the CEO and finance director treat wellness as an investment, not a cost?' });
     }
 
-    // 5b) Counterintuitive OB traps — the option that looks right but backfires.
-    [{ dec: SIM.DECISION3, tally: agg.d3, notes: SIM.TEACHING.d3Notes },
-     { dec: SIM.DECISION4, tally: agg.d4, notes: SIM.TEACHING.d4Notes }].forEach(function (blk) {
+    // 5b) OB decisions — counterintuitive traps (where set) + the scaling lesson.
+    obBlocks(agg).forEach(function (blk) {
       var total = blk.dec.options.reduce(function (t, o) { return t + (blk.tally[o.id] || 0); }, 0);
-      var trapN = blk.tally[blk.notes.trap] || 0;
-      if (total >= 3 && trapN / total >= 0.34) {
-        var trapOpt = blk.dec.options.filter(function (o) { return o.id === blk.notes.trap; })[0];
-        out.push({ icon: '🧠', title: 'A counterintuitive trap caught the room',
-          text: pct(trapN, total) + '% chose “' + trapOpt.title + '” on the ' + blk.notes.concept.toLowerCase() + ' question — the option that looks right but backfires. ' + blk.notes.trapNote });
+      if (total < 3) return;
+      if (blk.notes.trap) {
+        var trapN = blk.tally[blk.notes.trap] || 0;
+        if (trapN / total >= 0.34) {
+          var trapOpt = blk.dec.options.filter(function (o) { return o.id === blk.notes.trap; })[0];
+          out.push({ icon: '🧠', title: 'A counterintuitive trap caught the room',
+            text: pct(trapN, total) + '% chose “' + trapOpt.title + '” on the ' + blk.notes.concept.toLowerCase() + ' question — the option that looks right but backfires. ' + blk.notes.trapNote });
+        }
+      } else if (blk.notes.best) {
+        var bestN = blk.tally[blk.notes.best] || 0;
+        if (bestN / total < 0.6) {
+          out.push({ icon: '🔁', title: 'The feedback-loop lesson is up for grabs',
+            text: 'Only ' + pct(bestN, total) + '% chose the refine-and-scale path on the ' + blk.dec.title.toLowerCase().replace('?', '') + ' — the rest split between standardizing for everyone and shifting the burden onto individuals. ' + blk.notes.note });
+        }
       }
     });
 
@@ -386,7 +394,7 @@
     var tiles = [
       { label: 'Joined', value: agg.total, sub: agg.liveNow + ' active in the last 90s' },
       { label: 'Reading the case', value: agg.stepBuckets.reading, sub: 'briefing chapters' },
-      { label: 'In decisions', value: agg.stepBuckets.deciding, sub: 'working through the four calls' },
+      { label: 'In decisions', value: agg.stepBuckets.deciding, sub: 'working through the five calls' },
       { label: 'Completed', value: agg.completed, sub: agg.total ? pct(agg.completed, agg.total) + '% of joined' : '—' },
       { label: 'Median play time', value: agg.medianDuration ? fmtDur(agg.medianDuration) : '—', sub: 'join → reflection submitted' }
     ];
@@ -403,12 +411,17 @@
   // to the instructor (green=strong, amber=middle, red=weak). Students never
   // see these colors; on their screen the options are neutral.
   var VERDICT_COLOR = { strong: 'var(--good)', mixed: 'var(--warning)', weak: 'var(--critical)' };
+  function obBlocks(agg) {
+    return SIM.UNIVERSAL_ORDER.map(function (pt) {
+      return { dec: SIM.udDecision(pt), tally: agg[pt], notes: SIM.TEACHING[pt + 'Notes'] };
+    });
+  }
   function renderOBDecisions() {
     var agg = aggregates();
     var wrap = clear($('#ob-charts'));
-    [{ dec: SIM.DECISION3, tally: agg.d3, notes: SIM.TEACHING.d3Notes },
-     { dec: SIM.DECISION4, tally: agg.d4, notes: SIM.TEACHING.d4Notes }].forEach(function (blk) {
+    obBlocks(agg).forEach(function (blk) {
       var total = blk.dec.options.reduce(function (t, o) { return t + (blk.tally[o.id] || 0); }, 0);
+      var hasWeak = blk.dec.options.some(function (o) { return o.verdict === 'weak'; });
       var card = el('div', { class: 'card chart-card' });
       wrap.appendChild(card);
       hbarChart(card, {
@@ -425,19 +438,24 @@
             tip: o.title + ' — the ' + tierWord + ' choice: ' + n + ' student' + (n === 1 ? '' : 's')
           };
         }),
-        legend: [
-          { label: 'strong', color: VERDICT_COLOR.strong },
-          { label: 'middle', color: VERDICT_COLOR.mixed },
-          { label: 'trap (weak)', color: VERDICT_COLOR.weak }
-        ]
+        legend: hasWeak
+          ? [{ label: 'strong', color: VERDICT_COLOR.strong }, { label: 'middle', color: VERDICT_COLOR.mixed }, { label: 'trap (weak)', color: VERDICT_COLOR.weak }]
+          : [{ label: 'strong', color: VERDICT_COLOR.strong }, { label: 'middle', color: VERDICT_COLOR.mixed }]
       });
-      // count how many fell for the counterintuitive trap
-      var trapN = blk.tally[blk.notes.trap] || 0;
       if (total > 0) {
-        card.appendChild(el('div', { class: 'ob-note' }, [
-          el('strong', { text: pct(trapN, total) + '% took the counterintuitive trap. ' }),
-          el('span', { text: blk.notes.trapNote })
-        ]));
+        if (blk.notes.trap) {
+          var trapN = blk.tally[blk.notes.trap] || 0;
+          card.appendChild(el('div', { class: 'ob-note' }, [
+            el('strong', { text: pct(trapN, total) + '% took the counterintuitive trap. ' }),
+            el('span', { text: blk.notes.trapNote })
+          ]));
+        } else if (blk.notes.note) {
+          var bestN = blk.notes.best ? (blk.tally[blk.notes.best] || 0) : 0;
+          card.appendChild(el('div', { class: 'ob-note' }, [
+            el('strong', { text: pct(bestN, total) + '% chose the strong path. ' }),
+            el('span', { text: blk.notes.note })
+          ]));
+        }
       }
     });
   }
@@ -560,7 +578,8 @@
     briefing: 'Reading', decision1: 'Decision 1', outcome1: 'Outcome 1',
     decision2: 'Decision 2', outcome2: 'Outcome 2',
     decision3: 'Decision 3', outcome3: 'Outcome 3',
-    decision4: 'Decision 4', outcome4: 'Outcome 4', ending: 'Ending',
+    decision4: 'Decision 4', outcome4: 'Outcome 4',
+    decision5: 'Decision 5', outcome5: 'Outcome 5', ending: 'Ending',
     reflection: 'Reflection', done: 'Done'
   };
 
@@ -745,13 +764,15 @@
         el('div', { text: s.decisions.d2.rationale ? '“' + s.decisions.d2.rationale + '”' : 'No rationale given.' })
       ]));
     }
-    // Decisions 3 & 4 (universal OB dilemmas) — verdict-colored left border.
-    [{ n: 3, opt: s.decisions.d3 && SIM.d3Option(s.decisions.d3.choice), rat: s.decisions.d3 && s.decisions.d3.rationale, label: 'Retention crisis' },
-     { n: 4, opt: s.decisions.d4 && SIM.d4Option(s.decisions.d4.choice), rat: s.decisions.d4 && s.decisions.d4.rationale, label: 'The performance bar' }].forEach(function (x) {
-      if (!x.opt) return;
-      d.appendChild(el('div', { class: 'card voice', style: 'border-left:3px solid ' + VERDICT_COLOR[x.opt.verdict] }, [
-        el('div', { class: 'v-meta', text: 'Decision ' + x.n + ' (' + x.label + ') · ' + x.opt.letter + ' — ' + x.opt.title }),
-        el('div', { text: x.rat ? '“' + x.rat + '”' : 'No rationale given.' })
+    // Universal OB dilemmas (decisions 3–5) — verdict-colored left border.
+    SIM.UNIVERSAL_ORDER.forEach(function (pt, i) {
+      var dec = s.decisions[pt];
+      if (!dec) return;
+      var opt = SIM.udOption(pt, dec.choice);
+      if (!opt) return;
+      d.appendChild(el('div', { class: 'card voice', style: 'border-left:3px solid ' + VERDICT_COLOR[opt.verdict] }, [
+        el('div', { class: 'v-meta', text: 'Decision ' + (i + 3) + ' (' + SIM.udDecision(pt).reportLabel + ') · ' + opt.letter + ' — ' + opt.title }),
+        el('div', { text: dec.rationale ? '“' + dec.rationale + '”' : 'No rationale given.' })
       ]));
     });
     if (d1 && d2) {
@@ -773,7 +794,7 @@
     if (fi.d1 && s.decisions.d1 && fi.d1 !== s.decisions.d1.choice && SIM.d1Option(fi.d1)) {
       notes.push('First instinct on the opening was “' + SIM.d1Option(fi.d1).title + ',” then switched.');
     }
-    var totalRedos = (rc.d1 || 0) + (rc.d2 || 0) + (rc.d3 || 0) + (rc.d4 || 0);
+    var totalRedos = (rc.d1 || 0) + (rc.d2 || 0) + (rc.d3 || 0) + (rc.d4 || 0) + (rc.d5 || 0);
     if (totalRedos > 0) notes.push('Rethought a decision ' + totalRedos + '× after the feedback.');
     if (s.restarts) notes.push('Restarted with a fresh slate ' + s.restarts + '×.');
     if (notes.length) {
@@ -819,7 +840,7 @@
     slides.push(function () {
       return [
         el('div', { class: 'kicker', text: 'Rejuvenate · class debrief' }),
-        el('h2', { text: 'One case, six endings' }),
+        el('h2', { text: 'One case, seven endings' }),
         el('div', { class: 'debrief-hero', text: agg.reachedEnding + ' / ' + agg.total }),
         el('p', { class: 'slide-lede', text: 'students reached an ending · ' + agg.completed + ' submitted the reflection memo' + (agg.medianDuration ? ' · median play time ' + fmtDur(agg.medianDuration) : '') }),
         el('p', { class: 'slide-lede', text: 'Everyone played Rajan Patel, HR Director. Same company, same survey, same pressure — different instincts.' })
@@ -884,29 +905,33 @@
       });
     });
 
-    // 5b · the two OB dilemmas (universal) — one slide each
-    [{ dec: SIM.DECISION3, tally: agg.d3, notes: T.d3Notes },
-     { dec: SIM.DECISION4, tally: agg.d4, notes: T.d4Notes }].forEach(function (blk) {
+    // 5b · the three universal OB dilemmas — one slide each
+    obBlocks(agg).forEach(function (blk) {
       slides.push(function () {
         var total = blk.dec.options.reduce(function (t, o) { return t + (blk.tally[o.id] || 0); }, 0);
-        var trapN = blk.tally[blk.notes.trap] || 0;
+        var hasWeak = blk.dec.options.some(function (o) { return o.verdict === 'weak'; });
+        var sub = blk.notes.trap
+          ? total + ' decided · ' + pct(blk.tally[blk.notes.trap] || 0, total) + '% took the trap'
+          : total + ' decided · ' + pct(blk.notes.best ? (blk.tally[blk.notes.best] || 0) : 0, total) + '% chose the strong path';
         return [
           el('div', { class: 'kicker', text: 'OB dilemma · ' + blk.notes.concept }),
           el('h2', { text: blk.dec.title }),
           el('div', { class: 'two-col' }, [
             chartInto({
-              title: 'How the class chose', sub: total + ' decided · ' + pct(trapN, total) + '% took the trap',
+              title: 'How the class chose', sub: sub,
               empty: 'No one has reached this decision yet.',
               rows: blk.dec.options.map(function (o) {
                 var n = blk.tally[o.id] || 0;
                 return { label: o.letter + ' · ' + o.title, count: n, pct: pct(n, total), color: VERDICT_COLOR[o.verdict] };
               }),
-              legend: [{ label: 'strong', color: VERDICT_COLOR.strong }, { label: 'middle', color: VERDICT_COLOR.mixed }, { label: 'trap', color: VERDICT_COLOR.weak }]
+              legend: hasWeak
+                ? [{ label: 'strong', color: VERDICT_COLOR.strong }, { label: 'middle', color: VERDICT_COLOR.mixed }, { label: 'trap', color: VERDICT_COLOR.weak }]
+                : [{ label: 'strong', color: VERDICT_COLOR.strong }, { label: 'middle', color: VERDICT_COLOR.mixed }]
             }),
             el('div', { style: 'display:grid; gap:10px' }, [
               noteCard('The research', blk.notes.research),
-              noteCard('The trap to surface', blk.notes.trapNote),
-              noteCard('Strong · Middle · Weak', blk.dec.options.map(function (o) { return o.letter + ') ' + blk.notes.options[o.id]; }).join('  '))
+              noteCard(blk.notes.trap ? 'The trap to surface' : 'What to draw out', blk.notes.trapNote || blk.notes.note),
+              noteCard('The options', blk.dec.options.map(function (o) { return o.letter + ') ' + blk.notes.options[o.id]; }).join('  '))
             ])
           ])
         ];

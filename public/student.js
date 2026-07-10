@@ -375,11 +375,11 @@
     ]));
   }
 
-  // Universal OB dilemmas (decisions 3 & 4): reactions + feedback live on the
-  // chosen option itself, so one renderer covers both.
+  // Universal OB dilemmas (decisions 3–5): reactions + feedback live on the
+  // chosen option itself, so one renderer covers them all.
   function renderUniversalOutcome(decision, point, nextStep) {
     var root = stageRoot();
-    var opt = point === 'd3' ? SIM.d3Option(state.decisions.d3.choice) : SIM.d4Option(state.decisions.d4.choice);
+    var opt = SIM.udOption(point, state.decisions[point].choice);
     var reactions = opt.reactions || [];
     var feed = el('div', { class: 'feed' });
     if (opt.interlude) feed.appendChild(el('p', { class: 'case-p', text: opt.interlude }));
@@ -461,13 +461,13 @@
         el('div', { class: 'prose' }, e.summary.map(function (p) { return el('p', { class: 'case-p', text: p }); })),
         el('ul', { class: 'ending-bullets' }, e.bullets.map(function (b) { return el('li', { text: b }); })),
         el('div', { class: 'callout' }, [el('strong', { text: 'The takeaway: ' }), el('span', { text: e.lesson })]),
-        el('div', { class: 'kicker', text: 'Your four leadership calls' }),
+        el('div', { class: 'kicker', text: 'Your five leadership calls' }),
         reportCard(),
         el('div', { class: 'kicker', text: 'Where the culture landed' }),
         finals
       ]),
       el('div', { class: 'stage-nav' }, [
-        el('span', { class: 'small', text: 'This is one of six endings. The class debrief compares them.' }),
+        el('span', { class: 'small', text: 'This is one of seven endings. The class debrief compares them.' }),
         el('button', { class: 'btn', text: 'One last task →', onclick: function () { goStep('reflection'); } })
       ])
     ]));
@@ -562,7 +562,7 @@
     root.appendChild(el('div', { class: 'card done-hero' }, [
       el('div', { class: 'big', text: '✅', 'aria-hidden': 'true' }),
       el('h2', { text: 'You’re done, ' + state.name.split(' ')[0] + '.' }),
-      el('p', { class: 'case-p', text: 'Your ending: ' + e.icon + ' “' + e.title + '” — one of six ways this story can go. Your choices, rationale, and recommendations are with your instructor for the class debrief.' }),
+      el('p', { class: 'case-p', text: 'Your ending: ' + e.icon + ' “' + e.title + '” — one of seven ways this story can go. Your choices, rationale, and recommendations are with your instructor for the class debrief.' }),
       el('div', { class: 'rank-slots', style: 'justify-content:center' }, picks),
       el('div', { class: 'done-actions' }, [
         el('button', { class: 'btn', text: '↻ Try again with a fresh slate', onclick: restart }),
@@ -587,7 +587,9 @@
       case 'decision3': return renderDecision(SIM.DECISION3, 'd3', null);
       case 'outcome3': return renderUniversalOutcome(SIM.DECISION3, 'd3', 'decision4');
       case 'decision4': return renderDecision(SIM.DECISION4, 'd4', null);
-      case 'outcome4': return renderUniversalOutcome(SIM.DECISION4, 'd4', 'ending');
+      case 'outcome4': return renderUniversalOutcome(SIM.DECISION4, 'd4', 'decision5');
+      case 'decision5': return renderDecision(SIM.DECISION5, 'd5', null);
+      case 'outcome5': return renderUniversalOutcome(SIM.DECISION5, 'd5', 'ending');
       case 'ending': return renderEnding();
       case 'reflection': return renderReflection();
       case 'done': return renderDone();

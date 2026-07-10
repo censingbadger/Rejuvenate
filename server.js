@@ -207,7 +207,7 @@ async function handleApi(req, res, url) {
       decisions: {},
       reflection: null,
       firstInstinct: {},        // first choice at each point, preserved across redos
-      redoCounts: { d1: 0, d2: 0, d3: 0, d4: 0 },
+      redoCounts: { d1: 0, d2: 0, d3: 0, d4: 0, d5: 0 },
       restarts: 0,              // full "fresh slate" restarts
       createdAt: Date.now(),
       lastSeenAt: Date.now(),
@@ -235,11 +235,11 @@ async function handleApi(req, res, url) {
     // Steps only ever move forward; decisions are recorded via /api/decision.
     if (SIM.stepIndex(step) < 0) return json(res, 400, { error: 'Unknown step.' });
     if (SIM.stepIndex(step) > SIM.stepIndex(s.step)) {
-      const past = (point) => SIM.stepIndex(step) > SIM.stepIndex(point);
-      if ((past('decision1') && !s.decisions.d1) || (past('decision2') && !s.decisions.d2) ||
-          (past('decision3') && !s.decisions.d3) || (past('decision4') && !s.decisions.d4)) {
-        return json(res, 409, { error: 'Make your decision first.' });
-      }
+      const decisionPoints = ['d1', 'd2'].concat(SIM.UNIVERSAL_ORDER);
+      const missing = decisionPoints.some(function (p, i) {
+        return SIM.stepIndex(step) > SIM.stepIndex('decision' + (i + 1)) && !s.decisions[p];
+      });
+      if (missing) return json(res, 409, { error: 'Make your decision first.' });
       if (step === 'done') return json(res, 409, { error: 'Submit your reflection to finish.' });
       s.step = step;
     }
@@ -270,20 +270,17 @@ async function handleApi(req, res, url) {
       if (!s.firstInstinct.d2) s.firstInstinct.d2 = choice;
       s.decisions.d2 = { choice, rationale, at: Date.now() };
       s.step = 'outcome2';
-    } else if (point === 'd3') {
-      if (!s.decisions.d2) return json(res, 409, { error: 'Decision 2 comes first.' });
-      if (s.decisions.d3) return json(res, 409, { error: 'Decision 3 is already locked in.' });
-      if (!SIM.d3Option(choice)) return json(res, 400, { error: 'Unknown option.' });
-      if (!s.firstInstinct.d3) s.firstInstinct.d3 = choice;
-      s.decisions.d3 = { choice, rationale, at: Date.now() };
-      s.step = 'outcome3';
-    } else if (point === 'd4') {
-      if (!s.decisions.d3) return json(res, 409, { error: 'Decision 3 comes first.' });
-      if (s.decisions.d4) return json(res, 409, { error: 'Decision 4 is already locked in.' });
-      if (!SIM.d4Option(choice)) return json(res, 400, { error: 'Unknown option.' });
-      if (!s.firstInstinct.d4) s.firstInstinct.d4 = choice;
-      s.decisions.d4 = { choice, rationale, at: Date.now() };
-      s.step = 'outcome4';
+    } else if (SIM.UNIVERSAL_ORDER.indexOf(point) >= 0) {
+      // Universal decisions d3 → d4 → d5, each gated on the previous.
+      const order = ['d1', 'd2'].concat(SIM.UNIVERSAL_ORDER);
+      const idx = order.indexOf(point);
+      const prev = order[idx - 1];
+      if (!s.decisions[prev]) return json(res, 409, { error: 'An earlier decision comes first.' });
+      if (s.decisions[point]) return json(res, 409, { error: 'That decision is already locked in.' });
+      if (!SIM.udOption(point, choice)) return json(res, 400, { error: 'Unknown option.' });
+      if (!s.firstInstinct[point]) s.firstInstinct[point] = choice;
+      s.decisions[point] = { choice, rationale, at: Date.now() };
+      s.step = 'outcome' + (idx + 1);
     } else {
       return json(res, 400, { error: 'Unknown decision point.' });
     }
@@ -299,10 +296,10 @@ async function handleApi(req, res, url) {
     const s = getStudent(body);
     if (!s) return json(res, 401, { error: 'Unknown student.' });
     if (!s.firstInstinct) s.firstInstinct = {};
-    if (!s.redoCounts) s.redoCounts = { d1: 0, d2: 0, d3: 0, d4: 0 };
+    if (!s.redoCounts) s.redoCounts = { d1: 0, d2: 0, d3: 0, d4: 0, d5: 0 };
     const point = String(body.point || '');
 
-    const POINTS = ['d1', 'd2', 'd3', 'd4'];
+    const POINTS = ['d1', 'd2'].concat(SIM.UNIVERSAL_ORDER);
     const idx = POINTS.indexOf(point);
     if (idx < 0) return json(res, 400, { error: 'Unknown decision point.' });
     // Only "in the moment" — while on this decision's outcome screen.
@@ -330,7 +327,7 @@ async function handleApi(req, res, url) {
     s.decisions = {};
     s.reflection = null;
     s.firstInstinct = {};
-    s.redoCounts = { d1: 0, d2: 0, d3: 0, d4: 0 };
+    s.redoCounts = { d1: 0, d2: 0, d3: 0, d4: 0, d5: 0 };
     s.restarts = (s.restarts || 0) + 1;
     s.completedAt = null;
     s.step = 'briefing';
